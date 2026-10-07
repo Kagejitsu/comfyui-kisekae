@@ -1,0 +1,15 @@
+{
+  "kisekae": 1,
+  "name": "Shinobu default outfit",
+  "sections": {
+    "outfit": {
+      "fields": {
+        "full": "white dress, sleeveless dress",
+        "lower": "skirt",
+        "legwear": "thighhighs",
+        "handwear": "elbow gloves"
+      }
+    },
+    "hair": { "fields": { "accessories": "hair ribbon" } }
+  }
+}

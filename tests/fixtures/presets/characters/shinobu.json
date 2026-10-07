@@ -1,0 +1,9 @@
+{
+  "kisekae": 1,
+  "name": "Shinobu",
+  "sections": {
+    "identity": { "fields": { "who": "oshino shinobu", "series": "monogatari (series)", "gender": "1girl" } },
+    "hair": { "fields": { "color": "blonde hair", "length": { "value": "long hair", "weight": 1.1 } } },
+    "outfit": { "$ref": "outfits/shinobu-default" }
+  }
+}

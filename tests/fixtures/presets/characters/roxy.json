@@ -1,0 +1,23 @@
+{
+  "kisekae": 1,
+  "name": "Roxy",
+  "description": "Roxy Migurdia, default look",
+  "sections": {
+    "identity": {
+      "fields": { "who": "roxy migurdia" },
+      "loras": [ { "name": "Characters/Mushoku/roxy.safetensors", "strength": 0.8, "trigger": "roxy migurdia" } ]
+    },
+    "hair": {
+      "fields": {
+        "color": "blue hair",
+        "length": "long hair, very long hair",
+        "style": "hair between eyes, ahoge, twin braids, sidelocks"
+      }
+    },
+    "head": {
+      "fields": { "eyes": "blue eyes", "headwear": "hat, witch hat", "expression": "smile" }
+    },
+    "outfit": { "$ref": "outfits/roxy-default" }
+  },
+  "negative": "short hair"
+}

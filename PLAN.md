@@ -6,7 +6,7 @@ append/replace toggle) on every field. Nodes are chained; each passes a JSON
 character state to the next, and a Prompt node can be attached anywhere.
 
 License: **GPL-3.0**. Public repo: `Kagejitsu/comfyui-kisekae` (created only
-with Kate's go-ahead). Status: **plan agreed 2026-10-07, no code yet.**
+with Kate's go-ahead). Status: **phase 1 (core) done 2026-10-07**: 24 unittest tests green; Kate's Roxy/JoJo prompt reproduced. Phase 2 next.
 
 ---
 
@@ -199,7 +199,11 @@ the mtimes of every preset file used, so ComfyUI's cache can't serve stale resul
 **Load Preset**
 
 - Inputs: `preset` (dropdown of all presets); optional `char`; `mode` =
-  `replace` | `overlay` (overlay keeps incoming sections that the preset doesn't define).
+  - `replace`: the result is exactly the preset;
+  - `overlay`: the preset's sections replace whole sections, and other sections are kept;
+  - `merge`: the preset's fields replace single fields, LoRAs and negatives are added.
+    This is how a "scene" preset sets `head.expression` without wiping the
+    character's eyes. It was found while reproducing the Roxy/JoJo prompt.
 - Output: `char`.
 
 **Save Preset** (output node)
@@ -232,7 +236,10 @@ the mtimes of every preset file used, so ComfyUI's cache can't serve stale resul
 - `{section}` places all of a section's fields in schema order.
 - `{section.field}` places one field. That field is then left out of that section's
   `{section}` placeholder, so nothing is printed twice.
+- `{!section.field}` leaves a field out entirely (the `illustrious-tags` template
+  uses `{!pose.prose}`).
 - `{triggers}` places the LoRA trigger words.
+- Literal text is allowed, e.g. `masterpiece, {style}`.
 - One template line = one prompt line. Empty placeholders, dangling commas and empty lines
   are removed. Each non-final line ends with `,`.
 
@@ -315,7 +322,8 @@ and also output it as `text`.
 
 ## 7. Testing
 
-- **pytest on `kisekae/`** (no ComfyUI needed):
+- **stdlib `unittest` on `kisekae/`** (no ComfyUI, no pytest needed; pytest can still run them).
+  Run: `python -m unittest discover -s tests -t . -v`. Covers:
   - ref resolution, `extends`, cycle detection, local-over-ref precedence
   - append/replace/clear/keep logic
   - template rendering, explicit-field exclusion, empty-line cleanup
@@ -332,7 +340,7 @@ and also output it as `text`.
 
 | Phase | Deliverable | Done when |
 |---|---|---|
-| **1. Core** | `schema`, `char`, `presets` (+refs), `render`, tests | pytest green; Roxy prompt reproduced from a JSON fixture |
+| **1. Core** ✅ | `schema`, `char`, `presets` (+refs), `render`, `tags`, `loras`, tests | ✅ 2026-10-07: 24 tests green; Roxy prompt reproduced (`tests/test_core.py`) |
 | **2. Nodes MVP** | section factory + 8 section nodes, Load Preset, Prompt, **Debug JSON**, **Debug Prompt**, `kisekae.js`, example presets + workflow | Loads in ComfyUI with no errors; Kate builds a prompt by chaining nodes |
 | **3. Persistence & LoRAs** | Save Preset (keep_refs), LORA_STACK/lora_syntax/triggers, vocab negatives + conflict rules | Save → refresh → load round-trips; stack feeds LoraManager Lora Loader |
 | **4. Polish & publish** | widget UX (hide `_append`/`_text` until used, section colours), README with screenshots, `pyproject.toml`, GitHub repo, Registry | Kate approves → public repo + Registry listing |

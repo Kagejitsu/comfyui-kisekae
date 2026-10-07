@@ -1,0 +1,28 @@
+{
+  "kisekae": 1,
+  "name": "JoJo menacing",
+  "sections": {
+    "style": {
+      "fields": {
+        "quality": "masterpiece, best quality, score_7, best quality, amazing quality",
+        "artist": "@araki hirohiko",
+        "style_series": "jojo no kimyou na bouken"
+      }
+    },
+    "pose": {
+      "fields": {
+        "pose": "jojo pose, contrapposto, twisted torso, leaning back",
+        "extra": "foreshortening, menacing (jojo), dramatic shadow",
+        "prose": "flamboyant pose, both hands are on her hips, you can see the power emanating off of her"
+      }
+    },
+    "scene": {
+      "fields": {
+        "composition": "looking at viewer",
+        "lighting": "vignetting, dim lighting",
+        "effects": "aura, glowing eyes, wind, floating hair, speed lines, dramatic lighting, backlighting, rim lighting, from below, debris, cracked ground"
+      }
+    },
+    "head": { "fields": { "expression": "intense stare, serious" } }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "kisekae": 1,
+  "name": "Roxy default outfit",
+  "sections": {
+    "outfit": {
+      "fields": {
+        "full": "dress",
+        "upper": "shirt, long sleeves, collared shirt, grey shirt",
+        "outerwear": "jacket, capelet, white jacket, white capelet",
+        "lower": "skirt, black skirt",
+        "legwear": "socks, black socks",
+        "footwear": "boots, white footwear",
+        "accessories": "ribbon, black ribbon"
+      }
+    }
+  }
+}

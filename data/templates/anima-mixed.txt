@@ -1,0 +1,6 @@
+{style.quality}, {scene.composition}, {scene.lighting}
+{triggers}, {identity}, {hair}, {head}, {body}
+{outfit}
+{style}, {pose}
+{pose.prose}
+{scene}, {head.expression}

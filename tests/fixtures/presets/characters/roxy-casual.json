@@ -1,0 +1,21 @@
+{
+  "kisekae": 1,
+  "name": "Roxy (casual)",
+  "extends": "characters/roxy",
+  "sections": {
+    "hair": {
+      "fields": {
+        "style": "ponytail"
+      }
+    },
+    "outfit": {
+      "$ref": "outfits/shinobu-default"
+    },
+    "head": {
+      "$ref": "characters/roxy",
+      "fields": {
+        "expression": "smug"
+      }
+    }
+  }
+}

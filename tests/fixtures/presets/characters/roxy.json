@@ -4,8 +4,16 @@
   "description": "Roxy Migurdia, default look",
   "sections": {
     "identity": {
-      "fields": { "who": "roxy migurdia" },
-      "loras": [ { "name": "Characters/Mushoku/roxy.safetensors", "strength": 0.8, "trigger": "roxy migurdia" } ]
+      "fields": {
+        "who": "roxy migurdia"
+      },
+      "loras": [
+        {
+          "name": "Characters/Mushoku/roxy.safetensors",
+          "strength": 0.8,
+          "trigger": "roxy migurdia"
+        }
+      ]
     },
     "hair": {
       "fields": {
@@ -15,9 +23,14 @@
       }
     },
     "head": {
-      "fields": { "eyes": "blue eyes", "headwear": "hat, witch hat", "expression": "smile" }
+      "fields": {
+        "eyes": "blue eyes",
+        "expression": "smile"
+      }
     },
-    "outfit": { "$ref": "outfits/roxy-default" }
+    "outfit": {
+      "$ref": "outfits/roxy-default"
+    }
   },
   "negative": "short hair"
 }

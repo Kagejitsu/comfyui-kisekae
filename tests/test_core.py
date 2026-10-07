@@ -32,8 +32,8 @@ aura, glowing eyes, wind, floating hair, speed lines, dramatic lighting, backlig
 
 ROXY_EXPECTED = """\
 masterpiece, best quality, score_7, amazing quality, looking at viewer, vignetting, dim lighting,
-roxy migurdia, blue hair, long hair, very long hair, hair between eyes, ahoge, twin braids, sidelocks, blue eyes, hat, witch hat,
-dress, shirt, long sleeves, collared shirt, grey shirt, jacket, capelet, white jacket, white capelet, skirt, black skirt, socks, black socks, boots, white footwear, ribbon, black ribbon,
+roxy migurdia, blue hair, long hair, very long hair, hair between eyes, ahoge, twin braids, sidelocks, blue eyes,
+hat, witch hat, dress, shirt, long sleeves, collared shirt, grey shirt, jacket, capelet, white jacket, white capelet, skirt, black skirt, socks, black socks, boots, white footwear, ribbon, black ribbon,
 @araki hirohiko, jojo no kimyou na bouken, jojo pose, contrapposto, twisted torso, leaning back, foreshortening, menacing \\(jojo\\), dramatic shadow,
 flamboyant pose, both hands are on her hips, you can see the power emanating off of her,
 aura, glowing eyes, wind, floating hair, speed lines, dramatic lighting, backlighting, rim lighting, from below, debris, cracked ground, intense stare, serious"""

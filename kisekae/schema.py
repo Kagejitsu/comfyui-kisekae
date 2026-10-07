@@ -47,14 +47,14 @@ SECTIONS: tuple[Section, ...] = (
         "who", "series", "gender", "age", "species", "skin")),
     Section("head", "Head", _fields(
         "face", "eyes", "eyebrows", "ears", "mouth", "expression",
-        "makeup", "headwear", "eyewear", "accessories")),
+        "makeup", "eyewear", "accessories")),
     Section("hair", "Hair", _fields(
         "color", "length", "style", "bangs", "accessories")),
     Section("body", "Body", _fields(
         "body_type", "proportions", "height", "bust", "waist", "hips",
         "thighs", "muscle", "extras")),
     Section("outfit", "Outfit", _fields(
-        "full", "upper", "outerwear", "lower", "legwear", "footwear",
+        "headwear", "full", "upper", "outerwear", "lower", "legwear", "footwear",
         "handwear", "accessories", "underwear")),
     Section("style", "Style", _fields(
         "quality", "artist", "style_series", "art_style")),

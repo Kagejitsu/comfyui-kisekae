@@ -4,6 +4,7 @@
   "sections": {
     "outfit": {
       "fields": {
+        "headwear": "hat, witch hat",
         "full": "dress",
         "upper": "shirt, long sleeves, collared shirt, grey shirt",
         "outerwear": "jacket, capelet, white jacket, white capelet",

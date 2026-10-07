@@ -64,10 +64,10 @@ the named fields do not cover.
 | Section (node) | Fields |
 |---|---|
 | **identity** | who, series, gender (`1girl`, `1boy`…), age (apparent), species, skin |
-| **head** | face, eyes, eyebrows, ears, mouth, expression, makeup, headwear, eyewear, accessories |
+| **head** | face, eyes, eyebrows, ears, mouth, expression, makeup, eyewear, accessories |
 | **hair** | color, length, style (twin braids, ahoge, sidelocks…), bangs, accessories |
 | **body** | body_type, proportions, height, bust, waist, hips, thighs, muscle, extras (tail, wings, horns) |
-| **outfit** | full (dress, uniform…), upper, outerwear, lower, legwear, footwear, handwear, accessories, underwear |
+| **outfit** | headwear, full (dress, uniform…), upper, outerwear, lower, legwear, footwear, handwear, accessories, underwear |
 | **style** | quality, artist (`@name`), style_series (e.g. jojo), art_style |
 | **pose** | pose, hands, action, prose (multiline) |
 | **scene** | composition (camera/framing), lighting, background, effects |
@@ -370,3 +370,7 @@ publishing happen **only on Kate's go-ahead**.
 - The Head node has 34 widgets (preset + 11 fields × 3), as predicted. Phase 4 polish.
 - Dev install: `~/ComfyUI/custom_nodes/comfyui-kisekae` → symlink to this repo.
   Python changes need a ComfyUI restart; preset/vocab/template edits only need R (refresh).
+- **`headwear` moved from Head to Outfit** (2026-10-07, before any release): hats belong
+  to outfits, and a `$ref` to an outfit only carries the outfit section. Found while
+  building Kate's Roxy presets, where the witch hat has to swap with the outfit. Outfit
+  fields now run head to toe.

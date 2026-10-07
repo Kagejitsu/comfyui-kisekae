@@ -25,19 +25,40 @@
       "long torso"
     ],
     "height": [
-      "tall",
-      "very tall",
+      {
+        "value": "tall",
+        "negative": "short"
+      },
+      {
+        "value": "very tall",
+        "negative": "short"
+      },
       "tall female",
       "tall male",
-      "short",
+      {
+        "value": "short",
+        "negative": "tall"
+      },
       "height difference"
     ],
     "bust": [
-      "flat chest",
-      "small breasts",
+      {
+        "value": "flat chest",
+        "negative": "large breasts, huge breasts"
+      },
+      {
+        "value": "small breasts",
+        "negative": "large breasts, huge breasts"
+      },
       "medium breasts",
-      "large breasts",
-      "huge breasts",
+      {
+        "value": "large breasts",
+        "negative": "small breasts, flat chest"
+      },
+      {
+        "value": "huge breasts",
+        "negative": "small breasts, flat chest"
+      },
       "pectorals"
     ],
     "waist": [

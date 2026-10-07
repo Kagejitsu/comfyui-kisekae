@@ -59,8 +59,10 @@ def rough_tokens(text: str) -> int:
     return len(_TOKENISH.findall(text))
 
 
-def prompt_report(r: Rendered, lora_status: list[tuple[dict, str]]) -> str:
-    """Debug Prompt view. ``lora_status``: (lora, resolved path or warning)."""
+def prompt_report(r: Rendered, lora_status: list[tuple[dict, str]],
+                  token_counts: dict[str, int] | None = None) -> str:
+    """Debug Prompt view. ``lora_status``: (lora, resolved path or warning).
+    ``token_counts``: exact counts per text encoder, if a CLIP was connected."""
     parts = ["── POSITIVE ──", r.positive or "(empty)",
              "", "── NEGATIVE ──", r.negative or "(empty)",
              "", "── PLACEHOLDERS ──"]
@@ -71,11 +73,19 @@ def prompt_report(r: Rendered, lora_status: list[tuple[dict, str]]) -> str:
     if r.escaped:
         parts += ["", "── BRACKETS ESCAPED ──"]
         parts += [f"{a}  →  {b}" for a, b in r.escaped]
+    if r.neg_conflicts:
+        parts += ["", "── NEGATIVES DROPPED (also in positive) ──", ", ".join(r.neg_conflicts)]
     if lora_status:
         parts += ["", "── LORAS ──"]
         for l, status in lora_status:
             parts.append(f"[{l['section']}] {l['name']}  {l['strength']:g}/{l['clip_strength']:g}  {status}")
     if r.triggers:
         parts += ["", "── TRIGGERS ──", ", ".join(r.triggers)]
-    parts += ["", f"≈ {rough_tokens(r.positive)} tokens (rough estimate, not the model's tokenizer)"]
+    if token_counts:
+        parts += ["", "── TOKENS (from the connected CLIP) ──"]
+        for enc, n in token_counts.items():
+            chunk = f"  ({-(-max(n - 2, 0) // 75)} × 75-token chunks)" if enc in ("clip_l", "clip_g") else ""
+            parts.append(f"{enc}: {n}{chunk}")
+    else:
+        parts += ["", f"≈ {rough_tokens(r.positive)} tokens (rough estimate; connect a CLIP for exact counts)"]
     return "\n".join(parts)

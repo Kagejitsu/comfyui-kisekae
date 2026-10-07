@@ -90,12 +90,13 @@ def set_section(char: dict | None, section: str, data: dict, note: str) -> dict:
 
 def apply_field(char: dict, section: str, field: str, *, choice: str = KEEP,
                 text: str = "", append: bool = False, source: str = "",
-                note_prefix: str = "") -> dict:
+                negative: str = "", note_prefix: str = "") -> dict:
     """Apply one field override, mutating ``char`` in place (callers copy first).
 
     Precedence: typed ``text`` (if not blank) > dropdown ``choice`` > incoming.
     ``choice`` may be KEEP (pass through) or CLEAR (empty the field).
     ``append`` adds to the incoming value instead of replacing it.
+    ``negative`` is a vocab companion negative that travels with the value.
     """
     spec = get_section(section).field(field)
     text = (text or "").strip()
@@ -119,10 +120,52 @@ def apply_field(char: dict, section: str, field: str, *, choice: str = KEEP,
         merge = merge_text if spec.kind == "text" else merge_tags
         value = merge(old["value"], new)
         entry = dict(old, value=value, source=f"{old['source']} + {source}".strip(" +"))
+        if negative:
+            entry["negative"] = merge_tags(old.get("negative", ""), negative)
         verb = "appended"
     else:
         entry = {"value": new, "source": source}
+        if negative:
+            entry["negative"] = negative
         verb = "set"
     sec["fields"][field] = entry
     char["trace"].append(f"{note_prefix}{section}.{field} {verb} ({how}): {new}")
+    return char
+
+
+def _is_pick(choice, text) -> bool:
+    """True when a dropdown value (not a sentinel) is what takes effect."""
+    return not (text or "").strip() and choice not in (KEEP, CLEAR, NONE, "", None)
+
+
+def apply_overrides(char: dict, section: str, picks: dict, vocab=None, *,
+                    source: str = "", note_prefix: str = "") -> dict:
+    """Apply one node's field overrides, mutating ``char`` (callers copy first).
+
+    ``picks[field] = (choice, text, append)``. With a ``vocab``, dropdown picks
+    (never typed text) bring their companion negatives, and their ``hides``
+    rules clear fields of the incoming character first, so anything this same
+    node sets explicitly survives. An appended pick hides nothing: it adds to
+    the outfit rather than replacing it.
+    """
+    explicit = {(section, f) for f, (c, t, _a) in picks.items()
+                if (t or "").strip() or c not in (KEEP, NONE, "", None)}
+    if vocab is not None:
+        for f, (c, t, a) in picks.items():
+            if a or not _is_pick(c, t):
+                continue
+            for h in (vocab.option(section, f, c) or {}).get("hides", []):
+                hs, _, hf = h.partition(".")
+                if (hs, hf) in explicit or (hs, hf) == (section, f):
+                    continue
+                sec = char["sections"].get(hs)
+                if sec and sec["fields"].pop(hf, None) is not None:
+                    sec["origin"] = None
+                    char["trace"].append(f"{note_prefix}{h} cleared (hidden by {section}.{f} = {c})")
+    for f, (c, t, a) in picks.items():
+        neg = ""
+        if vocab is not None and _is_pick(c, t):
+            neg = (vocab.option(section, f, c) or {}).get("negative", "")
+        apply_field(char, section, f, choice=c, text=t, append=a, source=source,
+                    negative=neg, note_prefix=note_prefix)
     return char

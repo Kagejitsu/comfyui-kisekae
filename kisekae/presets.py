@@ -93,6 +93,34 @@ class PresetLibrary:
                 return candidate
         raise KisekaeError(f"preset {name!r} not found")
 
+    # -- writing (user root only) -----------------------------------------
+
+    def user_path(self, name: str) -> Path:
+        """Where ``name`` would be saved: always the first root, never a
+        prefixed (shipped, read-only) one."""
+        name = check_name(name)
+        if name.startswith("examples/"):
+            raise KisekaeError("'examples/' is reserved for the shipped presets; save under another folder")
+        root = self.roots[0]
+        if root.prefix:
+            raise KisekaeError("the first library root is read-only")
+        path = root.path / (name + SUFFIX)
+        self.check_inside_user_root(path)
+        return path
+
+    def check_inside_user_root(self, path: Path) -> None:
+        """Refuse paths whose existing parts resolve outside the user root
+        (e.g. a symlinked sub-folder pointing elsewhere)."""
+        root = self.roots[0].path.resolve()
+        probe = path.parent
+        while not probe.exists() and probe != probe.parent:
+            probe = probe.parent
+        if not probe.resolve().is_relative_to(root):
+            raise KisekaeError(f"refusing to write outside the preset folder: {path}")
+
+    def forget(self, name: str) -> None:
+        self._sections_cache.pop(name, None)
+
     def list_names(self) -> list[str]:
         names: set[str] = set()
         for root in self.roots:

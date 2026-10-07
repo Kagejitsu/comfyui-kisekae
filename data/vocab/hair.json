@@ -21,12 +21,27 @@
       "colored inner hair"
     ],
     "length": [
-      "very short hair",
-      "short hair",
+      {
+        "value": "very short hair",
+        "negative": "long hair, very long hair"
+      },
+      {
+        "value": "short hair",
+        "negative": "long hair, very long hair"
+      },
       "medium hair",
-      "long hair",
-      "very long hair",
-      "absurdly long hair"
+      {
+        "value": "long hair",
+        "negative": "short hair"
+      },
+      {
+        "value": "very long hair",
+        "negative": "short hair, medium hair"
+      },
+      {
+        "value": "absurdly long hair",
+        "negative": "short hair, medium hair"
+      }
     ],
     "style": [
       "ponytail",

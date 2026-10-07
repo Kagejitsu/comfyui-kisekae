@@ -102,3 +102,25 @@ def resolve_loras(loras: list[dict]) -> tuple[list[tuple[str, float, float]], li
 def show(text: str, result: tuple) -> dict:
     """Return outputs plus text for the node's display box (web/kisekae.js)."""
     return {"ui": {"text": [text]}, "result": result}
+
+
+def count_tokens(clip, text: str) -> dict[str, int]:
+    """Exact token counts per text encoder of a ComfyUI CLIP object.
+
+    ComfyUI tokenizers wrap a Hugging Face tokenizer per encoder (clip_l,
+    clip_g, qwen3_06b, t5xxl, ...). Escapes are removed first so they are
+    counted as the brackets the model actually sees. Counts include the
+    encoder's own start/end tokens.
+    """
+    text = text.replace("\\(", "(").replace("\\)", ")")
+    out: dict[str, int] = {}
+    tok = getattr(clip, "tokenizer", None)
+    for name, sub in sorted(vars(tok).items()) if tok is not None else []:
+        hf = getattr(sub, "tokenizer", None)
+        if hf is None or not callable(hf):
+            continue
+        try:
+            out[name] = len(hf(text)["input_ids"])
+        except Exception:  # an exotic tokenizer: skip it rather than fail the run
+            continue
+    return out

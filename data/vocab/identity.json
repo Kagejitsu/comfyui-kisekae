@@ -4,8 +4,14 @@
       "1girl",
       "1boy",
       "1other",
-      "1girl, solo",
-      "1boy, solo",
+      {
+        "value": "1girl, solo",
+        "negative": "multiple girls, multiple boys"
+      },
+      {
+        "value": "1boy, solo",
+        "negative": "multiple boys, multiple girls"
+      },
       "2girls",
       "2boys",
       "1boy, 1girl",

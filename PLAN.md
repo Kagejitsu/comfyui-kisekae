@@ -6,7 +6,7 @@ append/replace toggle) on every field. Nodes are chained; each passes a JSON
 character state to the next, and a Prompt node can be attached anywhere.
 
 License: **GPL-3.0**. Public repo: `Kagejitsu/comfyui-kisekae` (created only
-with Kate's go-ahead). Status: **phase 2 (nodes MVP) done 2026-10-07**: 12 nodes load in ComfyUI, 30 unittest tests green, live API smoke test passes. Waiting on Kate's hands-on trial; phase 3 next.
+with Kate's go-ahead). Status: **phase 3 done 2026-10-07**: 13 nodes, 46 unittest tests green, live checks pass (conflict rules, negatives, Save Preset round trip, exact token count via Anima's Qwen tokenizer). Phase 4 (polish & publish) next.
 
 ---
 
@@ -342,7 +342,7 @@ and also output it as `text`.
 |---|---|---|
 | **1. Core** ✅ | `schema`, `char`, `presets` (+refs), `render`, `tags`, `loras`, tests | ✅ 2026-10-07: 24 tests green; Roxy prompt reproduced (`tests/test_core.py`) |
 | **2. Nodes MVP** ✅ | section factory + 8 section nodes, Load Preset, Prompt (incl. LORA_STACK/lora_syntax/triggers, pulled forward), **Debug JSON**, **Debug Prompt**, `kisekae.js`, vocab, example presets | ✅ loads with no errors; live `/prompt` chain run OK; cache re-runs when a `$ref`'d file changes. ⏳ Kate's hands-on trial in the UI |
-| **3. Persistence & LoRAs** | Save Preset (keep_refs), vocab negatives + conflict rules, real token count (optional CLIP input) | Save → refresh → load round-trips; stack feeds LoraManager Lora Loader |
+| **3. Persistence & LoRAs** ✅ | Save Preset (keep_refs), vocab negatives + conflict rules, real token count (optional CLIP input) | Save → refresh → load round-trips; stack feeds LoraManager Lora Loader |
 | **4. Polish & publish** | widget UX (hide `_append`/`_text` until used, section colours), README with screenshots, `pyproject.toml`, GitHub repo, Registry | Kate approves → public repo + Registry listing |
 | **Later** | random/wildcard fields with seed, WD14 "preset from image", field-level refs, multi-character, V3 node API | — |
 
@@ -374,3 +374,20 @@ publishing happen **only on Kate's go-ahead**.
   to outfits, and a `$ref` to an outfit only carries the outfit section. Found while
   building Kate's Roxy presets, where the witch hat has to swap with the outfit. Outfit
   fields now run head to toe.
+
+## 11. Notes from phase 3
+
+- **Conflict rules** (`hides` in vocab) run in two passes per node: first clear the
+  hidden fields of the *incoming* character, then apply this node's overrides. So a
+  field set explicitly on the same node always survives, whatever the field order.
+  Appended picks and typed text never hide anything.
+- **Companion negatives** are stored on the field entry, so they disappear when the
+  value is replaced. A negative that also appears in the positive is dropped and
+  listed under "NEGATIVES DROPPED" in Debug Prompt.
+- **Save Preset** folds field negatives into the section's `negative` (a saved value is
+  plain text, not a dropdown pick any more). A `$ref` is kept only if it still resolves
+  and does not lead back to the file being written. Re-saving identical content
+  reports `UNCHANGED`, so re-queuing a workflow with a Save node doesn't error.
+- **Token count:** Debug Prompt has an optional `clip` input. It counts with each
+  encoder's own tokenizer (`qwen3_06b`/`t5xxl` for Anima, `clip_l`/`clip_g` with
+  75-token chunks for SDXL). Counts include start/end tokens.

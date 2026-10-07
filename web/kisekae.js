@@ -1,9 +1,9 @@
-// comfyui-kisekae: read-only text box on the Prompt and Debug nodes.
+// comfyui-kisekae: read-only text box on the Prompt, Debug and Save nodes.
 // The stock front end only renders ui.text for its own "Preview as Text" node.
 import { app } from "../../scripts/app.js";
 import { ComfyWidgets } from "../../scripts/widgets.js";
 
-const DISPLAY_NODES = new Set(["KisekaePrompt", "KisekaeDebugJSON", "KisekaeDebugPrompt"]);
+const DISPLAY_NODES = new Set(["KisekaePrompt", "KisekaeDebugJSON", "KisekaeDebugPrompt", "KisekaeSavePreset"]);
 const WIDGET = "kisekae_display";
 
 app.registerExtension({

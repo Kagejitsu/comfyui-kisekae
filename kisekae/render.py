@@ -36,6 +36,7 @@ class Rendered:
     breakdown: list[tuple[str, list[str]]] = field(default_factory=list)
     removed: list[str] = field(default_factory=list)
     escaped: list[tuple[str, str]] = field(default_factory=list)
+    neg_conflicts: list[str] = field(default_factory=list)
     loras: list[dict] = field(default_factory=list)
     triggers: list[str] = field(default_factory=list)
 
@@ -127,8 +128,22 @@ def render(char: dict, template: str, *, escape: bool = True, dedupe: bool = Tru
             out.lines.append(", ".join(items))
     out.positive = ",\n".join(out.lines)
 
+    # Negatives: global, then per section, then per field (vocab companions of
+    # dropdown picks), in schema order. A negative that also appears in the
+    # positive would fight it, so it is dropped and reported.
+    positive_keys = {norm_key(t) for line in out.lines for t in split_items(line)}
     neg_sources = [char.get("negative", "")]
-    neg_sources += [char["sections"][s].get("negative", "") for s in ordered_sections(char)]
+    for s in ordered_sections(char):
+        sec = char["sections"][s]
+        neg_sources.append(sec.get("negative", ""))
+        neg_sources += [sec["fields"][f].get("negative", "")
+                        for f in get_section(s).field_names if f in sec["fields"]]
+    neg_items = []
+    for it in split_items(",".join(neg_sources)):
+        if norm_key(it) in positive_keys:
+            out.neg_conflicts.append(it)
+        else:
+            neg_items.append(it)
     seen = set()  # negatives dedupe among themselves only
-    out.negative = ", ".join(finish(split_items(",".join(neg_sources))))
+    out.negative = ", ".join(finish(neg_items))
     return out

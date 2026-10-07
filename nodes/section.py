@@ -12,7 +12,8 @@ def make_section_node(sec: Section) -> type:
         DESCRIPTION = (
             f"{sec.label} section. Pick a preset to replace the whole section "
             "(LoRAs included), then override single fields: typed text wins over "
-            "the dropdown; the toggle appends instead of replacing.")
+            "the dropdown; the toggle appends instead of replacing. Dropdown picks "
+            "may add negatives or clear clashing fields (e.g. a dress clears upper/lower).")
         RETURN_TYPES = (CHAR,)
         RETURN_NAMES = ("char",)
         FUNCTION = "run"
@@ -54,14 +55,11 @@ def make_section_node(sec: Section) -> type:
                 data, _files = LIB.resolve_section(preset, sec.name)
                 data["origin"] = preset  # an unchanged pick can be saved back as a $ref
                 out = C.set_section(out, sec.name, data, f"{tag}: section ← {preset}")
-            for f in sec.fields:
-                C.apply_field(
-                    out, sec.name, f.name,
-                    choice=kw.get(f.name, C.KEEP),
-                    text=kw.get(f"{f.name}_text", ""),
-                    append=bool(kw.get(f"{f.name}_append", False)),
-                    source=f"node:{tag}",
-                    note_prefix=f"{tag}: ")
+            picks = {f.name: (kw.get(f.name, C.KEEP), kw.get(f"{f.name}_text", ""),
+                              bool(kw.get(f"{f.name}_append", False)))
+                     for f in sec.fields}
+            C.apply_overrides(out, sec.name, picks, vocab(),
+                              source=f"node:{tag}", note_prefix=f"{tag}: ")
             return (out,)
 
     SectionNode.__name__ = SectionNode.__qualname__ = f"Kisekae{sec.label}"

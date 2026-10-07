@@ -20,43 +20,87 @@
       "bandana",
       "helmet"
     ],
-    "full": [
-      "dress",
-      "sundress",
-      "sleeveless dress",
-      "white dress",
-      "black dress",
-      "evening gown",
-      "wedding dress",
-      "school uniform",
-      "serafuku",
-      "maid",
-      "maid apron",
-      "kimono",
-      "yukata",
-      "china dress",
-      "nun",
-      "military uniform",
-      "police uniform",
-      "nurse",
-      "gym uniform",
-      "swimsuit",
-      "one-piece swimsuit",
-      "bikini",
-      "bodysuit",
-      "plugsuit",
-      "pajamas",
-      "jumpsuit",
-      "overalls",
-      "business suit",
-      "suit",
-      "tuxedo",
-      "armor",
-      "witch",
-      "miko",
-      "cheerleader",
-      "idol clothes"
-    ],
+    "full": {
+      "hides": [
+        "outfit.upper",
+        "outfit.lower"
+      ],
+      "options": [
+        "dress",
+        "sundress",
+        "sleeveless dress",
+        "white dress",
+        "black dress",
+        "evening gown",
+        "wedding dress",
+        "school uniform",
+        "serafuku",
+        "maid",
+        {
+          "value": "maid apron",
+          "hides": []
+        },
+        "kimono",
+        "yukata",
+        "china dress",
+        "nun",
+        "military uniform",
+        "police uniform",
+        "nurse",
+        "gym uniform",
+        {
+          "value": "swimsuit",
+          "hides": [
+            "outfit.upper",
+            "outfit.lower",
+            "outfit.legwear"
+          ]
+        },
+        {
+          "value": "one-piece swimsuit",
+          "hides": [
+            "outfit.upper",
+            "outfit.lower",
+            "outfit.legwear"
+          ]
+        },
+        {
+          "value": "bikini",
+          "hides": [
+            "outfit.upper",
+            "outfit.lower",
+            "outfit.legwear"
+          ]
+        },
+        {
+          "value": "bodysuit",
+          "hides": [
+            "outfit.upper",
+            "outfit.lower",
+            "outfit.legwear"
+          ]
+        },
+        {
+          "value": "plugsuit",
+          "hides": [
+            "outfit.upper",
+            "outfit.lower",
+            "outfit.legwear"
+          ]
+        },
+        "pajamas",
+        "jumpsuit",
+        "overalls",
+        "business suit",
+        "suit",
+        "tuxedo",
+        "armor",
+        "witch",
+        "miko",
+        "cheerleader",
+        "idol clothes"
+      ]
+    },
     "upper": [
       "shirt",
       "white shirt",
@@ -136,7 +180,10 @@
       "garter straps",
       "leg warmers",
       "zettai ryouiki",
-      "bare legs"
+      {
+        "value": "bare legs",
+        "negative": "pantyhose, thighhighs"
+      }
     ],
     "footwear": [
       "shoes",
@@ -153,7 +200,13 @@
       "zouri",
       "slippers",
       "uwabaki",
-      "barefoot"
+      {
+        "value": "barefoot",
+        "hides": [
+          "outfit.legwear"
+        ],
+        "negative": "shoes, boots, socks"
+      }
     ],
     "handwear": [
       "gloves",

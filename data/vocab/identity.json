@@ -1,0 +1,55 @@
+{
+  "fields": {
+    "gender": [
+      "1girl",
+      "1boy",
+      "1other",
+      "1girl, solo",
+      "1boy, solo",
+      "2girls",
+      "2boys",
+      "1boy, 1girl",
+      "androgynous",
+      "otoko no ko"
+    ],
+    "age": [
+      "adult",
+      "young adult",
+      "mature female",
+      "mature male",
+      "old woman",
+      "old man"
+    ],
+    "species": [
+      "human",
+      "elf",
+      "dark elf",
+      "demon girl",
+      "angel",
+      "vampire",
+      "fox girl",
+      "cat girl",
+      "wolf girl",
+      "bunny girl",
+      "dragon girl",
+      "oni",
+      "robot",
+      "android",
+      "monster girl",
+      "kemonomimi mode"
+    ],
+    "skin": [
+      "pale skin",
+      "fair skin",
+      "tan",
+      "tanned skin",
+      "dark skin",
+      "dark-skinned female",
+      "dark-skinned male",
+      "colored skin",
+      "blue skin",
+      "grey skin",
+      "tan lines"
+    ]
+  }
+}

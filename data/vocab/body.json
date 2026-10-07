@@ -1,0 +1,89 @@
+{
+  "fields": {
+    "body_type": [
+      "slim",
+      "slender",
+      "petite",
+      "curvy",
+      "plump",
+      "muscular",
+      "muscular female",
+      "athletic",
+      "toned",
+      "chubby",
+      "skinny",
+      "abs"
+    ],
+    "proportions": [
+      "long legs",
+      "wide hips",
+      "narrow waist",
+      "broad shoulders",
+      "narrow shoulders",
+      "hourglass figure",
+      "thick thighs",
+      "long torso"
+    ],
+    "height": [
+      "tall",
+      "very tall",
+      "tall female",
+      "tall male",
+      "short",
+      "height difference"
+    ],
+    "bust": [
+      "flat chest",
+      "small breasts",
+      "medium breasts",
+      "large breasts",
+      "huge breasts",
+      "pectorals"
+    ],
+    "waist": [
+      "narrow waist",
+      "slim waist",
+      "thick waist",
+      "midriff",
+      "navel"
+    ],
+    "hips": [
+      "narrow hips",
+      "wide hips"
+    ],
+    "thighs": [
+      "thick thighs",
+      "slim thighs",
+      "thigh gap",
+      "plump thighs"
+    ],
+    "muscle": [
+      "toned",
+      "muscular",
+      "abs",
+      "biceps",
+      "toned stomach"
+    ],
+    "extras": [
+      "tail",
+      "cat tail",
+      "fox tail",
+      "wolf tail",
+      "dragon tail",
+      "demon tail",
+      "wings",
+      "angel wings",
+      "demon wings",
+      "dragon wings",
+      "bat wings",
+      "fairy wings",
+      "horns",
+      "demon horns",
+      "dragon horns",
+      "single horn",
+      "halo",
+      "tattoo",
+      "scar"
+    ]
+  }
+}

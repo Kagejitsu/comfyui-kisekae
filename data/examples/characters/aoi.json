@@ -1,0 +1,37 @@
+{
+  "kisekae": 1,
+  "name": "Aoi",
+  "description": "Example original character: quiet library girl",
+  "sections": {
+    "identity": {
+      "fields": {
+        "gender": "1girl, solo",
+        "age": "young adult"
+      }
+    },
+    "hair": {
+      "fields": {
+        "color": "black hair",
+        "length": "long hair",
+        "bangs": "blunt bangs, hime cut",
+        "accessories": "hairclip"
+      }
+    },
+    "head": {
+      "fields": {
+        "eyes": "blue eyes, tareme",
+        "eyewear": "round eyewear",
+        "expression": "light smile"
+      }
+    },
+    "body": {
+      "fields": {
+        "body_type": "slender"
+      }
+    },
+    "outfit": {
+      "$ref": "examples/outfits/school-uniform"
+    }
+  },
+  "negative": "short hair"
+}

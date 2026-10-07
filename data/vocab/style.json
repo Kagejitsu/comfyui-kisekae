@@ -1,0 +1,31 @@
+{
+  "fields": {
+    "quality": [
+      "masterpiece, best quality, amazing quality",
+      "masterpiece, best quality, score_7",
+      "best quality, high quality",
+      "newest, absurdres, highres",
+      "very aesthetic"
+    ],
+    "art_style": [
+      "anime coloring",
+      "cel shading",
+      "flat color",
+      "watercolor (medium)",
+      "oil painting (medium)",
+      "sketch",
+      "lineart",
+      "monochrome",
+      "greyscale",
+      "retro artstyle",
+      "1990s (style)",
+      "1980s (style)",
+      "chibi",
+      "realistic",
+      "3d",
+      "pixel art",
+      "official art",
+      "game cg"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "kisekae": 1,
+  "name": "School uniform",
+  "sections": {
+    "outfit": {
+      "fields": {
+        "full": "school uniform, serafuku",
+        "upper": "sailor collar, neck ribbon, long sleeves",
+        "lower": "pleated skirt",
+        "legwear": "black thighhighs",
+        "footwear": "loafers"
+      }
+    }
+  }
+}

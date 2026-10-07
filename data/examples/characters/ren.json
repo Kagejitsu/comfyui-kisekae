@@ -1,0 +1,39 @@
+{
+  "kisekae": 1,
+  "name": "Ren",
+  "description": "Example original character: fox-eared shrine keeper",
+  "sections": {
+    "identity": {
+      "fields": {
+        "gender": "1boy, solo",
+        "age": "young adult",
+        "species": "fox boy"
+      }
+    },
+    "hair": {
+      "fields": {
+        "color": "white hair",
+        "length": "medium hair",
+        "style": "low ponytail"
+      }
+    },
+    "head": {
+      "fields": {
+        "eyes": "red eyes, slit pupils",
+        "ears": "fox ears",
+        "expression": "smug"
+      }
+    },
+    "body": {
+      "fields": {
+        "extras": "fox tail"
+      }
+    },
+    "outfit": {
+      "$ref": "examples/outfits/shrine",
+      "fields": {
+        "footwear": "geta"
+      }
+    }
+  }
+}

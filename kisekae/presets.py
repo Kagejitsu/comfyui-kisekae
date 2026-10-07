@@ -51,6 +51,8 @@ def check_name(name: str) -> str:
     if name.endswith(SUFFIX):
         name = name[: -len(SUFFIX)]
     p = PurePosixPath(name)
+    if "#" in name:
+        raise KisekaeError(f"invalid preset name {name!r}: '#' is reserved for 'name#section' references")
     if "\\" in name or p.is_absolute() or any(part in ("..", ".", "") for part in name.split("/")):
         raise KisekaeError(f"invalid preset name {name!r}: use a relative path like 'outfits/maid'")
     return name
@@ -76,6 +78,7 @@ class PresetLibrary:
 
     def __init__(self, roots: list[Root]):
         self.roots = roots
+        self._sections_cache: dict[str, tuple[set[Path], str, set[str]]] = {}
 
     # -- discovery -------------------------------------------------------
 
@@ -103,15 +106,31 @@ class PresetLibrary:
                         names.add(root.prefix + rel[: -len(SUFFIX)])
         return sorted(names, key=str.casefold)
 
+    def sections_of(self, name: str) -> set[str] | None:
+        """Sections a preset provides, or None if it fails to resolve.
+
+        Cached by file fingerprint: dropdowns of 8 node types call this for
+        every preset on each refresh, but only changed files are re-read.
+        """
+        hit = self._sections_cache.get(name)
+        if hit and self.fingerprint(hit[0]) == hit[1]:
+            return hit[2]
+        try:
+            res = self.resolve(name)
+        except KisekaeError:
+            self._sections_cache.pop(name, None)
+            return None
+        secs = set(res.sections)
+        self._sections_cache[name] = (set(res.files), self.fingerprint(res.files), secs)
+        return secs
+
     def list_with_section(self, section: str) -> list[str]:
         """Presets that provide ``section``. Broken presets are still listed,
         so picking one shows its error instead of it silently vanishing."""
         out = []
         for name in self.list_names():
-            try:
-                if section in self.resolve(name).sections:
-                    out.append(name)
-            except KisekaeError:
+            secs = self.sections_of(name)
+            if secs is None or section in secs:
                 out.append(name)
         return out
 

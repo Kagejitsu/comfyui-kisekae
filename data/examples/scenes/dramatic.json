@@ -1,0 +1,30 @@
+{
+  "kisekae": 1,
+  "name": "Dramatic scene",
+  "description": "Load with mode=merge on top of a character",
+  "sections": {
+    "style": {
+      "fields": {
+        "quality": "masterpiece, best quality, amazing quality"
+      }
+    },
+    "pose": {
+      "fields": {
+        "pose": "contrapposto, hand on hip",
+        "prose": "she looks down at the viewer with quiet confidence, wind catching her hair"
+      }
+    },
+    "scene": {
+      "fields": {
+        "composition": "looking at viewer, from below, cowboy shot",
+        "lighting": "dramatic lighting, rim lighting",
+        "effects": "wind, floating hair, light particles"
+      }
+    },
+    "head": {
+      "fields": {
+        "expression": "serious"
+      }
+    }
+  }
+}

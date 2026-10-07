@@ -13,6 +13,8 @@ from kisekae import loras
 from kisekae.errors import KisekaeError
 from kisekae.presets import PresetLibrary, Root, check_name
 from kisekae.render import parse_template, render
+from kisekae.report import char_json, prompt_report
+from kisekae.vocab import Vocab
 from kisekae.tags import escape_item, merge_tags, merge_text, norm_key, split_items
 
 HERE = Path(__file__).parent
@@ -122,7 +124,7 @@ class TestPresets(unittest.TestCase):
                 lib().resolve(name)
 
     def test_name_safety(self):
-        for bad in ["../etc/passwd", "/etc/passwd", "a/../../b", "a\\b", "", "a//b", "./a"]:
+        for bad in ["../etc/passwd", "/etc/passwd", "a/../../b", "a\\b", "", "a//b", "./a", "a#b"]:
             with self.subTest(bad=bad), self.assertRaises(KisekaeError):
                 check_name(bad)
         self.assertEqual(check_name("outfits/maid.json"), "outfits/maid")
@@ -259,6 +261,81 @@ class TestRender(unittest.TestCase):
         }.items():
             with self.subTest(t=t), self.assertRaisesRegex(KisekaeError, pattern):
                 parse_template(t)
+
+
+class TestShippedData(unittest.TestCase):
+    DATA = HERE.parent / "data"
+
+    def test_examples_resolve(self):
+        L = PresetLibrary([Root(self.DATA / "examples", "examples/")])
+        names = L.list_names()
+        self.assertIn("examples/characters/aoi", names)
+        for name in names:
+            with self.subTest(name=name):
+                L.resolve(name)
+        ren = L.resolve("examples/characters/ren").sections["outfit"]["fields"]
+        self.assertEqual(ren["footwear"]["value"], "geta")      # local override over $ref
+        self.assertEqual(ren["lower"]["value"], "hakama")
+
+    def test_vocab_loads_clean(self):
+        v = Vocab([self.DATA / "vocab"])
+        self.assertEqual(v.errors, [])
+        self.assertIn("blue eyes", v.values("head", "eyes"))
+
+    def test_vocab_overlay(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "hair.json").write_text(json.dumps({"fields": {
+                "color": ["mint hair", "blue hair"],
+                "length": {"replace": True, "options": ["long hair"]}}}))
+            Path(tmp, "head.json").write_text("{broken")
+            v = Vocab([self.DATA / "vocab", Path(tmp)])
+            colors = v.values("hair", "color")
+            self.assertEqual(colors.count("blue hair"), 1)
+            self.assertEqual(colors[-1], "mint hair")
+            self.assertEqual(v.values("hair", "length"), ["long hair"])
+            self.assertEqual(len(v.errors), 1)                    # broken file reported...
+            self.assertIn("blue eyes", v.values("head", "eyes"))  # ...shipped values survive
+
+
+class TestSectionsCache(unittest.TestCase):
+    def test_cache_invalidates_on_edit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copytree(FIX, tmp, dirs_exist_ok=True)
+            L = PresetLibrary([Root(Path(tmp))])
+            self.assertIn("outfit", L.sections_of("characters/roxy"))
+            self.assertIsNone(L.sections_of("loop/a"))
+            p = Path(tmp, "characters", "roxy.json")
+            d = json.loads(p.read_text())
+            del d["sections"]["outfit"]
+            time.sleep(0.01)
+            p.write_text(json.dumps(d))
+            self.assertNotIn("outfit", L.sections_of("characters/roxy"))
+
+
+class TestReports(unittest.TestCase):
+    def setUp(self):
+        ch = C.load_preset(None, lib().resolve("characters/roxy"), "characters/roxy")
+        self.ch = C.load_preset(ch, lib().resolve("scenes/jojo-menacing"), "scenes/jojo-menacing", "merge")
+        C.apply_field(self.ch, "hair", "color", text="silver hair", source="node:Hair#3")
+
+    def test_json_views(self):
+        resolved = json.loads(char_json(self.ch, "resolved"))
+        self.assertEqual(resolved["sections"]["hair"]["fields"]["color"], "silver hair")
+        sources = json.loads(char_json(self.ch, "sources", "outfit"))
+        self.assertEqual(list(sources["sections"]), ["outfit"])
+        self.assertEqual(sources["sections"]["outfit"]["origin"], "$ref outfits/roxy-default")
+        self.assertEqual(sources["sections"]["outfit"]["fields"]["full"]["source"], "preset:outfits/roxy-default")
+        trace = char_json(self.ch, "trace")
+        self.assertIn("3. hair.color set (typed): silver hair", trace)
+
+    def test_prompt_report(self):
+        r = render(self.ch, template("anima-mixed"))
+        lora = r.loras[0]
+        text = prompt_report(r, [(lora, "✓")])
+        for needle in ("── POSITIVE ──", "{hair}", "silver hair", "DUPLICATES REMOVED",
+                       "menacing \\(jojo\\)", "[identity] Characters/Mushoku/roxy.safetensors  0.8/0.8  ✓",
+                       "tokens (rough"):
+            self.assertIn(needle, text)
 
 
 if __name__ == "__main__":

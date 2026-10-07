@@ -1,0 +1,15 @@
+{
+  "kisekae": 1,
+  "name": "Shrine keeper",
+  "sections": {
+    "outfit": {
+      "fields": {
+        "full": "japanese clothes",
+        "upper": "kimono, wide sleeves",
+        "lower": "hakama",
+        "footwear": "zouri",
+        "legwear": "tabi"
+      }
+    }
+  }
+}

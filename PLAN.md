@@ -6,7 +6,7 @@ append/replace toggle) on every field. Nodes are chained; each passes a JSON
 character state to the next, and a Prompt node can be attached anywhere.
 
 License: **GPL-3.0**. Public repo: `Kagejitsu/comfyui-kisekae` (created only
-with Kate's go-ahead). Status: **phase 1 (core) done 2026-10-07**: 24 unittest tests green; Kate's Roxy/JoJo prompt reproduced. Phase 2 next.
+with Kate's go-ahead). Status: **phase 2 (nodes MVP) done 2026-10-07**: 12 nodes load in ComfyUI, 30 unittest tests green, live API smoke test passes. Waiting on Kate's hands-on trial; phase 3 next.
 
 ---
 
@@ -341,8 +341,8 @@ and also output it as `text`.
 | Phase | Deliverable | Done when |
 |---|---|---|
 | **1. Core** ✅ | `schema`, `char`, `presets` (+refs), `render`, `tags`, `loras`, tests | ✅ 2026-10-07: 24 tests green; Roxy prompt reproduced (`tests/test_core.py`) |
-| **2. Nodes MVP** | section factory + 8 section nodes, Load Preset, Prompt, **Debug JSON**, **Debug Prompt**, `kisekae.js`, example presets + workflow | Loads in ComfyUI with no errors; Kate builds a prompt by chaining nodes |
-| **3. Persistence & LoRAs** | Save Preset (keep_refs), LORA_STACK/lora_syntax/triggers, vocab negatives + conflict rules | Save → refresh → load round-trips; stack feeds LoraManager Lora Loader |
+| **2. Nodes MVP** ✅ | section factory + 8 section nodes, Load Preset, Prompt (incl. LORA_STACK/lora_syntax/triggers, pulled forward), **Debug JSON**, **Debug Prompt**, `kisekae.js`, vocab, example presets | ✅ loads with no errors; live `/prompt` chain run OK; cache re-runs when a `$ref`'d file changes. ⏳ Kate's hands-on trial in the UI |
+| **3. Persistence & LoRAs** | Save Preset (keep_refs), vocab negatives + conflict rules, real token count (optional CLIP input) | Save → refresh → load round-trips; stack feeds LoraManager Lora Loader |
 | **4. Polish & publish** | widget UX (hide `_append`/`_text` until used, section colours), README with screenshots, `pyproject.toml`, GitHub repo, Registry | Kate approves → public repo + Registry listing |
 | **Later** | random/wildcard fields with seed, WD14 "preset from image", field-level refs, multi-character, V3 node API | — |
 
@@ -360,3 +360,13 @@ publishing happen **only on Kate's go-ahead**.
   migration can come later.
 - **Example presets:** original characters only. Nothing from Kate's library, no real LoRA
   file names.
+
+## 10. Notes from phase 2
+
+- A **section node's preset dropdown takes only that node's own section**. Picking
+  `outfits/maid` on the Outfit node does *not* bring the maid preset's `head.headwear`
+  (maid headdress). To get every section a preset defines, use **Load Preset** with
+  `mode=merge`.
+- The Head node has 34 widgets (preset + 11 fields × 3), as predicted. Phase 4 polish.
+- Dev install: `~/ComfyUI/custom_nodes/comfyui-kisekae` → symlink to this repo.
+  Python changes need a ComfyUI restart; preset/vocab/template edits only need R (refresh).

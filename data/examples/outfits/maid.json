@@ -1,0 +1,20 @@
+{
+  "kisekae": 1,
+  "name": "Maid",
+  "sections": {
+    "outfit": {
+      "fields": {
+        "full": "maid, maid apron",
+        "upper": "puffy sleeves, short sleeves",
+        "legwear": "white thighhighs",
+        "footwear": "mary janes",
+        "handwear": "wrist cuffs"
+      }
+    },
+    "head": {
+      "fields": {
+        "headwear": "maid headdress"
+      }
+    }
+  }
+}

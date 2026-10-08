@@ -18,7 +18,7 @@ export function h(tag, props = {}, ...children) {
 }
 
 export function append(el, children) {
-  for (const c of children.flat(Infinity)) {
+  for (const c of [children].flat(Infinity)) { // a single node or any nesting of lists
     if (c === null || c === undefined || c === false) continue;
     el.append(c instanceof Node ? c : document.createTextNode(String(c)));
   }

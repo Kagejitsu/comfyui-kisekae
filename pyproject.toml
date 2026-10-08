@@ -17,4 +17,3 @@ Documentation = "https://github.com/Kagejitsu/comfyui-kisekae#readme"
 [tool.comfy]
 PublisherId = "kagejitsu"
 DisplayName = "Kisekae 👘"
-Icon = ""

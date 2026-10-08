@@ -31,12 +31,16 @@ def make_section_node(sec: Section) -> type:
                 req[f.name] = ([C.KEEP, C.CLEAR] + v.values(sec.name, f.name), {
                     "default": C.KEEP,
                     "tooltip": "(keep) passes the incoming value through; (clear) empties it"})
+                # Typed text and the append toggle sit behind the node's "Show advanced
+                # inputs" switch, so a node shows one dropdown per field by default.
                 req[f"{f.name}_text"] = ("STRING", {
-                    "default": "", "multiline": f.multiline,
+                    "default": "", "multiline": f.multiline, "advanced": True,
+                    "display_name": f"{f.name} text",
                     "placeholder": f"{f.name}: typed override (wins over dropdown)",
                     "tooltip": "Typed text wins over the dropdown. (tag:1.2) weights work."})
                 req[f"{f.name}_append"] = ("BOOLEAN", {
                     "default": False, "label_on": "append", "label_off": "replace",
+                    "advanced": True, "display_name": f"{f.name} mode",
                     "tooltip": "append: add to the incoming value; replace: overwrite it"})
             return {
                 "required": req,

@@ -6,6 +6,40 @@ import { ComfyWidgets } from "../../scripts/widgets.js";
 const DISPLAY_NODES = new Set(["KisekaePrompt", "KisekaeDebugJSON", "KisekaeDebugPrompt", "KisekaeSavePreset"]);
 const WIDGET = "kisekae_display";
 
+// Section nodes mark each field's typed text and append toggle as advanced inputs.
+// The Vue renderer reads that from widget options; the canvas renderer (and its
+// "Show Advanced" menu item) needs it on the widget itself.
+const isAdvanced = (w) => w.options?.advanced;
+const inUse = (w) => (typeof w.value === "string" ? w.value.trim() !== "" : w.value === true);
+
+app.registerExtension({
+    name: "kisekae.sections",
+    async beforeRegisterNodeDef(nodeType, nodeData) {
+        const inputs = Object.values(nodeData.input?.required ?? {});
+        if (!nodeData.name.startsWith("Kisekae") || !inputs.some((spec) => spec[1]?.advanced)) return;
+
+        const onNodeCreated = nodeType.prototype.onNodeCreated;
+        nodeType.prototype.onNodeCreated = function () {
+            const r = onNodeCreated?.apply(this, arguments);
+            for (const w of this.widgets ?? []) if (isAdvanced(w)) w.advanced = true;
+            this.setSize([this.size[0], this.computeSize()[1]]); // fit the visible rows only
+            return r;
+        };
+
+        // Never hide an override that is in use: a node loaded with typed text or
+        // "append" on opens its advanced inputs.
+        const onConfigure = nodeType.prototype.onConfigure;
+        nodeType.prototype.onConfigure = function () {
+            const r = onConfigure?.apply(this, arguments);
+            if (!this.showAdvanced && this.widgets?.some((w) => isAdvanced(w) && inUse(w))) {
+                this.showAdvanced = true;
+                this.setSize([this.size[0], Math.max(this.size[1], this.computeSize()[1])]);
+            }
+            return r;
+        };
+    },
+});
+
 app.registerExtension({
     name: "kisekae.display",
     async beforeRegisterNodeDef(nodeType, nodeData) {

@@ -2,8 +2,10 @@
 
 import { api } from "./api.js";
 import { closeAllDialogs, dialog, h, toast } from "./dom.js";
-import { confirmLeave, editorKeys, openEditor } from "./editor.js";
+import { confirmLeave, editorKeys, openEditor, schema } from "./editor.js";
 import { openDetail, renderFilters, renderGrid, renderTree } from "./organizer.js";
+import { openTemplates, templateKeys } from "./templates.js";
+import { openVocab } from "./vocab.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -54,34 +56,61 @@ function render() {
   }[state.nsfwMode];
 }
 
-let editor = null; // the open editor, if any
+let editor = null; // the open preset editor, if any
+let tool = null; // the open Dropdowns or Templates page, if any
 let lastHash = location.hash;
 
-function showView(editing) {
-  document.body.classList.toggle("editing", editing);
-  $("editor").hidden = !editing;
-  document.querySelector(".layout").hidden = editing;
+const active = () => editor || tool; // whatever may hold unsaved changes
+
+function showView(view) {
+  document.body.dataset.view = view; // presets | editor | dropdowns | templates
+  document.body.classList.toggle("editing", view !== "presets");
+  $("editor").hidden = view !== "editor";
+  $("tool").hidden = view !== "dropdowns" && view !== "templates";
+  $("organizer").hidden = view !== "presets";
+  for (const a of document.querySelectorAll(".views a")) {
+    a.classList.toggle("on", a.dataset.view === (view === "editor" ? "presets" : view));
+  }
   lastHash = location.hash;
 }
 
 async function showEditor(name, folder) {
-  showView(true);
+  tool = null;
+  showView("editor");
   editor = await openEditor(app, state, { name, folder });
   document.title = `${name || "New preset"} · Tansu`;
 }
 
+async function showTool(kind, args) {
+  editor = null;
+  showView(kind);
+  const sc = await schema();
+  if (kind === "dropdowns") {
+    tool = await openVocab($("tool"), sc, { section: args[0], field: args[1] });
+    document.title = "Dropdowns · Tansu";
+  } else {
+    tool = await openTemplates($("tool"), sc, state, { name: args[0] });
+    tool.kind = "templates";
+    document.title = "Templates · Tansu";
+  }
+}
+
 function showOrganizer() {
   editor = null;
-  showView(false);
+  tool = null;
+  showView("presets");
   document.title = "Tansu · Kisekae presets";
 }
 
-// #edit/<name> and #new[/<folder>] open the editor; anything else is the organizer.
+// #edit/<name>, #new[/<folder>], #dropdowns[/<section>/<field>], #templates[/<name>];
+// anything else is the organizer.
 async function route() {
-  const m = location.hash.match(/^#(edit|new)(?:\/(.*))?$/);
+  const m = location.hash.match(/^#(edit|new|dropdowns|templates)(?:\/(.*))?$/);
   if (!m) return showOrganizer();
-  const arg = decodeURIComponent(m[2] || "");
-  return m[1] === "edit" ? showEditor(arg, "") : showEditor(null, arg);
+  const args = (m[2] || "").split("/").map(decodeURIComponent);
+  if (m[1] === "edit") return showEditor(decodeURIComponent(m[2] || ""), "");
+  if (m[1] === "new") return showEditor(null, decodeURIComponent(m[2] || ""));
+  return showTool(m[1], args);
 }
 
 const app = {
@@ -220,17 +249,19 @@ $("new").addEventListener("click", () => {
   app.openEditor(null, { folder: f && f !== "user:" && f !== "trash" && !f.startsWith("examples/") ? f : "" });
 });
 window.addEventListener("hashchange", async () => {
-  if (editor?.dirty && !(await confirmLeave(editor))) {
+  if (active()?.dirty && !(await confirmLeave(active()))) {
     history.pushState(null, "", lastHash || location.pathname); // stay in the editor
     return;
   }
   route();
 });
 window.addEventListener("beforeunload", (e) => {
-  if (editor?.dirty) e.preventDefault();
+  if (active()?.dirty) e.preventDefault();
 });
 document.addEventListener("keydown", (e) => {
   if (editor) return editorKeys(editor, e);
+  if (tool?.kind === "templates") return templateKeys(tool, e);
+  if (tool) return;
   const typing = e.target.closest?.("input, textarea, select");
   if (e.key === "?" && !typing && !document.querySelector(".backdrop")) return showHelp();
   if ((e.key === "/" && !typing) || (e.key === "f" && (e.ctrlKey || e.metaKey) && !document.querySelector(".backdrop"))) {
@@ -241,7 +272,7 @@ document.addEventListener("keydown", (e) => {
 });
 // Come back to the tab after saving from the graph: pick up the changes.
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && !editor && !document.querySelector(".backdrop")) app.reload();
+  if (document.visibilityState === "visible" && !active() && !document.querySelector(".backdrop")) app.reload();
 });
 
 app.reload().then(route);

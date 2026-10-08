@@ -37,6 +37,11 @@ export const api = {
   schema: () => call("GET", "schema"),
   addVocab: (section, field, value) => call("POST", "vocab", { body: { section, field, value } }),
   loras: (q) => call("GET", "loras", { query: { q } }),
+  vocabField: (section, field) => call("GET", "vocab/field", { query: { section, field } }),
+  setVocabField: (section, field, entry) => call("PUT", "vocab/field", { body: { section, field, entry } }),
+  templates: () => call("GET", "templates"),
+  saveTemplate: (name, text) => call("PUT", "template", { body: { name, text } }),
+  trashTemplate: (name) => call("POST", "template/trash", { body: { name } }),
   pictureUrl: (name, version) =>
     `/kisekae/api/picture?name=${encodeURIComponent(name)}&v=${encodeURIComponent(version ?? "")}`,
 };

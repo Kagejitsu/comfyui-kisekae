@@ -11,7 +11,7 @@ const SECTION_ICON = {
 let schemaCache = null;
 let loraCache = new Map(); // query -> results
 
-async function schema() {
+export async function schema() {
   if (!schemaCache) schemaCache = await api.schema();
   return schemaCache;
 }

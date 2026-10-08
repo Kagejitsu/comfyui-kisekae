@@ -18,6 +18,7 @@ from server import PromptServer
 
 from ..kisekae import char as C
 from ..kisekae import library as L
+from ..kisekae import templates as T
 from ..kisekae.errors import KisekaeError
 from ..kisekae.loras import collect
 from ..kisekae.render import render
@@ -299,3 +300,43 @@ async def loras(request: web.Request) -> web.Response:
         if len(out) >= 200:
             break
     return _json({"loras": out})
+
+
+# -- dropdowns (vocab) and templates: Tansu phase 2 ----------------------------------
+
+@routes.get("/kisekae/api/vocab/field")
+@api
+async def get_vocab_field(request: web.Request) -> web.Response:
+    q = request.query
+    return _json(L.vocab_field(DATA / "vocab", USER / "vocab", q.get("section", ""), q.get("field", "")))
+
+
+@routes.put("/kisekae/api/vocab/field")
+@api
+async def put_vocab_field(request: web.Request) -> web.Response:
+    body = await _body(request)
+    return _json(L.set_vocab_field(DATA / "vocab", USER / "vocab", _arg(body, "section"), _arg(body, "field"),
+                                   body.get("entry")))
+
+
+@routes.get("/kisekae/api/templates")
+@api
+async def list_templates(request: web.Request) -> web.Response:
+    return _json({"templates": T.list_templates(DATA / "templates", USER / "templates")})
+
+
+@routes.put("/kisekae/api/template")
+@api
+async def put_template(request: web.Request) -> web.Response:
+    body = await _body(request)
+    T.save_template(USER / "templates", _arg(body, "name"), body.get("text"))
+    return _json({"templates": T.list_templates(DATA / "templates", USER / "templates")})
+
+
+@routes.post("/kisekae/api/template/trash")
+@api
+async def trash_template(request: web.Request) -> web.Response:
+    body = await _body(request)
+    T.trash_template(USER / "templates", _arg(body, "name"))
+    return _json({"templates": T.list_templates(DATA / "templates", USER / "templates")})
+

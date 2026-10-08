@@ -267,9 +267,29 @@ library in its own tab, at `http://<your ComfyUI>/kisekae`.
   Preset node wrote it), you choose between reloading their version and
   overwriting with yours.
 
-Save Preset in the graph keeps the tags and description you set in Tansu. After
-changing presets in Tansu, press **R** in ComfyUI to refresh the node dropdowns.
-Press **?** in Tansu for its keyboard shortcuts.
+**Dropdowns page**
+
+- Pick a field on the left, e.g. Outfit → full.
+- Each value shows whether it is **shipped**, **yours** or **changed**, with its
+  negative and the fields it **clears** when picked.
+- Add values, give them negatives, change what they clear, hide shipped values
+  you never use, or reset a changed one.
+- Changes go to your vocab overlay files; the shipped files are never touched.
+
+**Templates page**
+
+- Edit prompt layouts in a text box. A palette inserts placeholders: Shift+click
+  a field to insert `{!section.field}`, which leaves it out.
+- The preview renders any preset with the template as you type, and flags
+  misspelled placeholders.
+- **Save as my version** on a shipped template makes yours replace it in the
+  Prompt node. **↺ Back to shipped** undoes that.
+- Deleted templates go to `templates/.trash/`.
+
+Save Preset in the graph keeps the tags, description and R-18 mark you set in
+Tansu. After changing presets, dropdowns or templates in Tansu, press **R** in
+ComfyUI to refresh the node dropdowns. Press **?** in Tansu for its keyboard
+shortcuts.
 
 ## Templates
 
@@ -295,9 +315,10 @@ commas are removed. The default, `anima-mixed`:
 {scene}, {head.expression}
 ```
 
-`illustrious-tags` is the same layout without the prose line. To add your own,
-put `.txt` files in `ComfyUI/user/default/kisekae/templates/`. A file with the
-same name as a shipped template replaces it.
+`illustrious-tags` is the same layout without the prose line. Make your own on
+Tansu's **Templates** page, or put `.txt` files in
+`ComfyUI/user/default/kisekae/templates/`. A file with the same name as a
+shipped template replaces it.
 
 The Prompt node also:
 
@@ -309,15 +330,17 @@ The Prompt node also:
 
 ## Dropdown values
 
-The dropdown options come from `data/vocab/<section>.json`. To add your own, put
-a file with the same name in `ComfyUI/user/default/kisekae/vocab/`, e.g.
-`outfit.json`:
+The dropdown options come from `data/vocab/<section>.json`. The easiest way to
+change them is Tansu's **Dropdowns** page (see below). It writes the same overlay
+files you can also write by hand: a file with the same name in
+`ComfyUI/user/default/kisekae/vocab/`, e.g. `outfit.json`:
 
 ```json
 {
   "fields": {
     "legwear": ["fishnet thighhighs"],
     "footwear": { "replace": true, "options": ["boots", "sneakers", "geta"] },
+    "lower": { "remove": ["hakama"] },
     "full": {
       "hides": ["outfit.upper", "outfit.lower"],
       "options": [
@@ -330,10 +353,16 @@ a file with the same name in `ComfyUI/user/default/kisekae/vocab/`, e.g.
 }
 ```
 
-- A plain list adds values. Use `"replace": true` to replace the shipped ones.
+- A plain list adds values. Use `"replace": true` to replace the shipped ones,
+  or `"remove"` to hide single shipped values.
 - `negative`: added to the negative prompt while that value is picked.
 - `hides`: picking the value clears those fields of the incoming character,
   unless the same node sets them itself.
+  - A `hides` next to `options` is the default for the whole field.
+  - Values you add inherit the shipped default: a new `full` outfit clears
+    upper and lower like `dress` does, unless you set your own `hides`.
+- Listing a shipped value again (e.g. `{ "value": "dress", "negative": "pants" }`)
+  changes it.
 
 `negative` and `hides` apply only to **dropdown picks**. Typed text and preset
 values are never pruned, so a preset with `white dress` and `skirt` keeps both.

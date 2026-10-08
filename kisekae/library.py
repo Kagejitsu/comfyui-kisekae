@@ -11,13 +11,14 @@ from __future__ import annotations
 import json
 import os
 import re
+import tempfile
 import time
 from pathlib import Path
 
 from .errors import KisekaeError
 from .presets import SUFFIX, PresetLibrary, _Resolver, check_name
 from .save import atomic_write_json, write_preset
-from .schema import SECTION_NAMES, get_section
+from .schema import SECTION_NAMES, SECTIONS, get_section
 from .vocab import Vocab
 
 PICTURE_EXTS = (".webp", ".png", ".jpg", ".jpeg")
@@ -390,9 +391,86 @@ def add_vocab(shipped: Path, user: Path, section: str, field: str, value: str) -
     elif isinstance(entry, list):
         entry.append(value)
     elif isinstance(entry, dict) and isinstance(entry.setdefault("options", []), list):
-        entry["options"].append(value)
+        if isinstance(entry.get("remove"), list) and value in entry["remove"]:
+            entry["remove"].remove(value)  # it was a hidden shipped value: un-hide it
+        else:
+            entry["options"].append(value)
     else:
         raise KisekaeError(f"{path}: {field} must be a list or an object with \"options\"")
     user.mkdir(parents=True, exist_ok=True)
     atomic_write_json(path, data)
     return Vocab([shipped, user]).values(section, field)
+
+
+def _overlay_fields(user: Path, section: str) -> tuple[Path, dict]:
+    path = user / f"{section}.json"
+    if not path.exists():
+        return path, {"fields": {}}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise KisekaeError(f"{path}: invalid JSON at line {e.lineno} column {e.colno}: {e.msg}; fix it by hand first") from None
+    if not isinstance(data, dict) or not isinstance(data.get("fields", {}), dict):
+        raise KisekaeError(f'{path}: expected {{"fields": {{...}}}}; fix it by hand first')
+    data.setdefault("fields", {})
+    return path, data
+
+
+def _entry_dict(raw) -> dict:
+    """A field's overlay entry in its object form."""
+    if raw is None:
+        return {}
+    if isinstance(raw, list):
+        return {"options": raw}
+    return dict(raw) if isinstance(raw, dict) else {}
+
+
+def vocab_field(shipped: Path, user: Path, section: str, field: str) -> dict:
+    """Everything the dropdown page shows for one field: the merged options
+    and where each comes from, plus the user's raw overlay entry to edit."""
+    if section not in SECTION_NAMES or field not in get_section(section).field_names:
+        raise KisekaeError(f"unknown field {section}.{field}")
+    base = Vocab([shipped])
+    both = Vocab([shipped, user])
+    _, data = _overlay_fields(user, section)
+    entry = _entry_dict(data["fields"].get(field))
+    shipped_values = set(base.values(section, field))
+    mine = {o if isinstance(o, str) else o.get("value") for o in entry.get("options", [])}
+    default = both.default_hides[section][field]
+    options = [{
+        **o,
+        "custom_hides": o["hides"] != default,
+        "origin": ("changed" if o["value"] in mine else "shipped") if o["value"] in shipped_values else "yours",
+    } for o in both.options[section][field]]
+    return {
+        "section": section, "field": field, "entry": entry, "options": options,
+        "default_hides": default, "shipped_default_hides": base.default_hides[section][field],
+        "removed": [v for v in base.values(section, field) if v not in both.values(section, field)],
+        "fields": [f"{s.name}.{f.name}" for s in SECTIONS for f in s.fields],
+        "errors": both.errors,
+    }
+
+
+def set_vocab_field(shipped: Path, user: Path, section: str, field: str, entry) -> dict:
+    """Replace the user's overlay entry for one field (an empty entry removes
+    it), after checking that the result loads."""
+    if section not in SECTION_NAMES or field not in get_section(section).field_names:
+        raise KisekaeError(f"unknown field {section}.{field}")
+    if not isinstance(entry, dict):
+        raise KisekaeError("the dropdown entry must be an object")
+    entry = {k: v for k, v in entry.items() if v not in (None, [], False)}
+    path, data = _overlay_fields(user, section)
+    if entry:
+        data["fields"][field] = entry
+    else:
+        data["fields"].pop(field, None)
+    with tempfile.TemporaryDirectory() as tmp:  # check before touching the real file
+        (Path(tmp) / f"{section}.json").write_text(json.dumps(data), encoding="utf-8")
+        errors = Vocab([shipped, Path(tmp)]).errors
+    errors = [e.replace(tmp, str(user)) for e in errors if tmp in e]
+    if errors:
+        raise KisekaeError(errors[0])
+    user.mkdir(parents=True, exist_ok=True)
+    atomic_write_json(path, data)
+    return vocab_field(shipped, user, section, field)
+

@@ -12,8 +12,13 @@ name add to them::
                 "dress",
                 {"value": "maid apron", "hides": []},             # per-option override
                 {"value": "short hair", "negative": "long hair"}  # companion negative
-            ]}
+            ]},
+        "legwear": {"remove": ["fishnets"]}                       # hide shipped values
     }}
+
+A field's default ``hides`` carries over to later files: options a user
+overlay adds to ``outfit.full`` hide upper/lower like the shipped ones, unless
+the overlay sets its own ``hides``.
 
 Both extras apply to **dropdown picks only**; preset text and typed text are
 never pruned and add no negatives.
@@ -53,11 +58,19 @@ def _hides(raw, what: str) -> list[str]:
     return list(raw)
 
 
-def _options(raw, what: str) -> tuple[list[dict], bool]:
-    replace, default_hides = False, []
+def _options(raw, what: str, default_hides: list[str]) -> tuple[list[dict], bool, list[str], list[str]]:
+    """Parse one field's entry. Returns (options, replace, default hides, removed values)."""
+    replace, remove = False, []
     if isinstance(raw, dict):
+        unknown = set(raw) - {"replace", "hides", "options", "remove"}
+        if unknown:
+            raise KisekaeError(f"{what}: unknown keys {sorted(unknown)}")
         replace = bool(raw.get("replace", False))
-        default_hides = _hides(raw.get("hides", []), what)
+        if "hides" in raw:
+            default_hides = _hides(raw["hides"], what)
+        remove = raw.get("remove", [])
+        if not isinstance(remove, list) or not all(isinstance(v, str) for v in remove):
+            raise KisekaeError(f"{what}: \"remove\" must be a list of values")
         raw = raw.get("options", [])
     if not isinstance(raw, list):
         raise KisekaeError(f"{what}: expected a list of options")
@@ -72,7 +85,7 @@ def _options(raw, what: str) -> tuple[list[dict], bool]:
             raise KisekaeError(f"{what}: negative of {o['value']!r} must be a string")
         hides = _hides(o["hides"], what) if "hides" in o else default_hides
         out.append({"value": o["value"].strip(), "negative": neg, "hides": hides})
-    return out, replace
+    return out, replace, default_hides, remove
 
 
 class Vocab:
@@ -81,6 +94,8 @@ class Vocab:
     def __init__(self, dirs: list[Path]):
         # dirs in load order: shipped first, user overlays after
         self.options: dict[str, dict[str, list[dict]]] = {
+            s.name: {f.name: [] for f in s.fields} for s in SECTIONS}
+        self.default_hides: dict[str, dict[str, list[str]]] = {
             s.name: {f.name: [] for f in s.fields} for s in SECTIONS}
         self.errors: list[str] = []
         for d in dirs:
@@ -98,8 +113,10 @@ class Vocab:
         for fname, raw in fields.items():
             if fname not in sec.field_names:
                 raise KisekaeError(f"{path}: unknown field {sec.name}.{fname}")
-            opts, replace = _options(raw, f"{path}: {sec.name}.{fname}")
-            have = [] if replace else self.options[sec.name][fname]
+            opts, replace, default, remove = _options(
+                raw, f"{path}: {sec.name}.{fname}", self.default_hides[sec.name][fname])
+            self.default_hides[sec.name][fname] = default
+            have = [] if replace else [o for o in self.options[sec.name][fname] if o["value"] not in remove]
             index = {o["value"]: i for i, o in enumerate(have)}
             for o in opts:
                 if o["value"] in index:

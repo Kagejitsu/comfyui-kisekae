@@ -17,6 +17,11 @@
 <body>
   <header class="topbar">
     <a class="brand" href="/kisekae" title="Tansu: Kisekae preset organizer"><span class="logo">👘</span> Tansu</a>
+    <nav class="views" aria-label="Pages">
+      <a href="#" data-view="presets">Presets</a>
+      <a href="#dropdowns" data-view="dropdowns">Dropdowns</a>
+      <a href="#templates" data-view="templates">Templates</a>
+    </nav>
     <label class="search">
       <span aria-hidden="true">⌕</span>
       <input id="search" type="search" placeholder="Search names, tags, field values, LoRAs…" autocomplete="off">
@@ -35,7 +40,8 @@
     <button id="theme" class="btn icon" title="Light / dark">◐</button>
   </header>
   <section id="editor" class="editor" hidden></section>
-  <div class="layout">
+  <section id="tool" class="tool" hidden></section>
+  <div class="layout" id="organizer">
     <nav id="tree" class="sidebar" aria-label="Folders"></nav>
     <main>
       <div id="filters" class="filters"></div>

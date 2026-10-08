@@ -278,9 +278,10 @@ The Prompt node gives you the character's LoRAs in two forms:
   It works with LoRA Manager's loaders (`lora_stack` input) and other stack
   appliers, such as Easy-Use's *Apply LoraStack*.
 
-Use one of the two, not both, or the LoRA is applied twice. For models whose
-LoRAs only patch the diffusion model (such as Anima), leave the loader's `clip`
-input unconnected.
+Use one of the two, not both, or the LoRA is applied twice. The loader's `clip`
+input is optional. Connecting it, as in the screenshot below, is needed for LoRAs
+that also trained the text encoder. LoRAs that only patch the diffusion model
+(common for Anima) leave CLIP unchanged.
 
 ![Prompt node wired to LoRA Manager's LoRA Text Loader](docs/screenshots/loras.png)
 

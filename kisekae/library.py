@@ -21,6 +21,7 @@ from .schema import SECTION_NAMES, get_section
 from .vocab import Vocab
 
 PICTURE_EXTS = (".webp", ".png", ".jpg", ".jpeg")
+KEY_ORDER = ("kisekae", "name", "description", "tags", "nsfw", "extends", "sections", "negative")
 TRASH = ".trash"
 _TRASH_ID = re.compile(r"^\d{8}-\d{6}-\d{3}$")
 
@@ -99,7 +100,7 @@ def index(lib: PresetLibrary) -> list[dict]:
         entry = {
             "name": name, "title": name.rsplit("/", 1)[-1], "description": "", "tags": [],
             "sections": [], "loras": [], "refs": [], "readonly": is_readonly(lib, name),
-            "mtime": 0.0, "picture": False, "search": "", "error": None,
+            "mtime": 0.0, "picture": False, "nsfw": False, "search": "", "error": None,
         }
         try:
             raw, path = lib.load_raw(name)
@@ -108,6 +109,7 @@ def index(lib: PresetLibrary) -> list[dict]:
             entry["description"] = raw.get("description") if isinstance(raw.get("description"), str) else ""
             entry["tags"] = norm_tags(raw.get("tags"))
             entry["refs"] = refs_out(raw)
+            entry["nsfw"] = raw.get("nsfw") is True
             entry["picture"] = picture_of(lib, name) is not None
             res = resolver.preset(name, ())
         except KisekaeError as e:
@@ -154,6 +156,8 @@ def validate(lib: PresetLibrary, name: str, data) -> list[str]:
     """Problems that would stop ``data`` loading as ``name`` (empty = fine)."""
     try:
         norm_tags(data.get("tags") if isinstance(data, dict) else None)
+        if isinstance(data, dict) and not isinstance(data.get("nsfw", False), bool):
+            raise KisekaeError('"nsfw" must be true or false')
         lib.resolve_draft(name, data)
     except KisekaeError as e:
         return [str(e)]
@@ -175,6 +179,9 @@ def save(lib: PresetLibrary, name: str, data, expected: str | None) -> str:
         data = {**data, "tags": norm_tags(data["tags"])}
         if not data["tags"]:
             del data["tags"]
+    if data.get("nsfw") is False:  # only R-18 presets carry the flag
+        data = {k: v for k, v in data.items() if k != "nsfw"}
+    data = {**{k: data[k] for k in KEY_ORDER if k in data}, **data}  # stable, readable key order
     current = etag(path)
     if expected is None and current is not None:
         raise Conflict(f"preset {name!r} already exists")

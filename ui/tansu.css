@@ -311,3 +311,6 @@ table.keys { border-collapse: collapse; }
 table.keys td { padding: 0.25rem 0.8rem 0.25rem 0; }
 kbd { font-family: var(--mono); font-size: 0.8rem; padding: 0.05rem 0.4rem; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2); }
 .editor-bar kbd, .search kbd { background: transparent; color: inherit; }
+.badge.adult { background: #c2185b; color: #fff; }
+.btn.on-adult { border-color: #c2185b; color: #e0407e; }
+.ed-card label.check { flex-direction: row; align-items: center; gap: 0.45rem; color: var(--text); font-size: 0.9rem; cursor: pointer; width: fit-content; }

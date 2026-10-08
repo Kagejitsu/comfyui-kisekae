@@ -138,6 +138,11 @@ function renderForm(ed) {
           spellcheck: false, disabled: ro,
           onchange: (e) => { e.target.value.trim() ? (d.extends = e.target.value.trim()) : delete d.extends; changed(ed, { rerender: true }); },
         })))),
+    h("label", { class: "check", title: "Blurred or hidden in Tansu depending on the 🔞 setting. The nodes ignore it." },
+      h("input", {
+        type: "checkbox", checked: d.nsfw === true, disabled: ro,
+        onchange: (e) => { e.target.checked ? (d.nsfw = true) : delete d.nsfw; changed(ed); },
+      }), "🔞 R-18 preset"),
     d.extends ? h("p", { class: "muted small" }, `Sections left as “inherit” come from ${d.extends}; fields you fill in apply on top.`) : null);
 
   const sections = ed.sc.sections.map((s) => sectionCard(ed, s));
@@ -479,7 +484,7 @@ async function save(ed, { force = false } = {}) {
   const name = ed.isNew ? ed.path : ed.name;
   if (!name || name.endsWith("/")) return toast("Give the preset a path first, e.g. characters/my-character", "error", 6000);
   for (const sec of Object.values(ed.draft.sections || {})) clean(sec);
-  ed.draft = ordered(ed.draft);
+  if (ed.draft.name === "") delete ed.draft.name; // the card falls back to the file name
   let etag = ed.etag;
   if (force) {
     try {
@@ -498,17 +503,6 @@ async function save(ed, { force = false } = {}) {
     if (e.conflict) return conflictDialog(ed, e.message);
     toast(e.message, "error", 9000);
   }
-}
-
-const KEY_ORDER = ["kisekae", "name", "description", "tags", "extends", "sections", "negative"];
-
-function ordered(d) {
-  // a stable key order keeps saved files easy to read and diff
-  const out = {};
-  if (d.name === "") delete d.name; // the card falls back to the file name
-  for (const k of KEY_ORDER) if (k in d) out[k] = d[k];
-  for (const k of Object.keys(d)) if (!(k in out)) out[k] = d[k];
-  return out;
 }
 
 function conflictDialog(ed, message) {

@@ -31,7 +31,8 @@ const state = {
   trashCount: 0,
   visible: [],
   revealed: new Set(), // NSFW previews shown this session
-  blur: stored("tansu.blur", true),
+  // R-18 cards: "show", "blur" (default) or "hide". Older pages stored a blur on/off boolean.
+  nsfwMode: stored("tansu.nsfw", stored("tansu.blur", true) ? "blur" : "show"),
   filter: {
     folder: stored("tansu.folder", null),
     q: "",
@@ -45,8 +46,12 @@ function render() {
   renderTree($("tree"), state, app);
   renderFilters($("filters"), state, app);
   renderGrid($("grid"), $("status"), state, app);
-  $("blur").textContent = state.blur ? "🔞 Blur on" : "🔞 Blur off";
-  $("blur").title = state.blur ? "R-rated previews are blurred (click to show them)" : "R-rated previews are shown (click to blur)";
+  $("blur").textContent = { show: "🔞 Show", blur: "🔞 Blur", hide: "🔞 Hide" }[state.nsfwMode];
+  $("blur").title = {
+    show: "R-18 cards are shown. Click to blur them",
+    blur: "R-18 cards are blurred. Click to hide them",
+    hide: "R-18 cards are hidden. Click to show them",
+  }[state.nsfwMode];
 }
 
 let editor = null; // the open editor, if any
@@ -183,8 +188,8 @@ $("theme").addEventListener("click", () => {
   }
 });
 $("blur").addEventListener("click", () => {
-  state.blur = !state.blur;
-  store("tansu.blur", state.blur);
+  state.nsfwMode = { show: "blur", blur: "hide", hide: "show" }[state.nsfwMode];
+  store("tansu.nsfw", state.nsfwMode);
   render();
 });
 function showHelp() {
@@ -203,6 +208,7 @@ function showHelp() {
       h("table", { class: "keys" }, keys.map(([k, where, what]) =>
         h("tr", {}, h("td", {}, h("kbd", {}, k)), h("td", { class: "muted" }, where), h("td", {}, what)))),
       h("p", { class: "muted" }, "Tag chips cycle: click to require the tag, again to exclude it, again to clear."),
+      h("p", { class: "muted" }, "🔞 cycles R-18 cards between blurred, hidden and shown. Mark a preset R-18 in its details or in the editor."),
       h("p", { class: "muted" }, "Presets live in ComfyUI/user/default/kisekae/presets/. Press R in ComfyUI after changes here to refresh the node dropdowns.")),
     actions: [{ label: "Close" }],
   });

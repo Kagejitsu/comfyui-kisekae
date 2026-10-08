@@ -119,8 +119,8 @@ def atomic_write_json(path: Path, data) -> None:
 
 
 def keep_file_metadata(lib: PresetLibrary, target: str, data: dict) -> dict:
-    """Carry the existing file's tags (and description, when the new data has
-    none) into ``data``, so saving from the graph doesn't wipe what was set in
+    """Carry the existing file's tags and R-18 flag (and description, when the
+    new data has none) into ``data``, so saving from the graph doesn't wipe what was set in
     the Tansu editor."""
     path = lib.user_path(target)
     try:
@@ -137,4 +137,6 @@ def keep_file_metadata(lib: PresetLibrary, target: str, data: dict) -> dict:
                 out["description"] = old["description"]
             if "tags" not in data and isinstance(old.get("tags"), list) and old["tags"]:
                 out["tags"] = old["tags"]
+            if "nsfw" not in data and old.get("nsfw") is True:
+                out["nsfw"] = True
     return out

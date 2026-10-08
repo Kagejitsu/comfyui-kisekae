@@ -223,8 +223,12 @@ library in its own tab, at `http://<your ComfyUI>/kisekae`.
   - Without one, it shows the preview of the preset's LoRA, taken from
     [LoRA Manager](https://github.com/willmiao/ComfyUI-Lora-Manager)'s files.
   - Without either, it shows the picture of the preset it `extends`.
-  - Previews rated above PG-13 are blurred until you click Show. **🔞 Blur**
-    turns this off.
+- **R-18 presets:**
+  - Mark a preset with **🔞 R-18** in its detail panel or in the editor. This
+    saves `"nsfw": true` in its file; the nodes ignore it.
+  - A LoRA preview that LoRA Manager rates R or above counts as R-18 too.
+  - The **🔞** button in the top bar cycles **Blur** (the default; click Show on
+    a card to reveal it), **Hide** and **Show**.
 - **Finding presets:**
   - a folder tree;
   - search across names, tags, field values and LoRA names;
@@ -253,7 +257,7 @@ library in its own tab, at `http://<your ComfyUI>/kisekae`.
   overlay.
 - **LoRAs:** search your `loras` folder. Trigger words fill in from LoRA Manager
   when available.
-- **Tags, description and extends** are set in the header.
+- **Tags, description, extends and the 🔞 R-18 mark** are set in the header.
 - **⇪ As preset** moves a section into its own preset and references it. For
   example, it turns a character's outfit into `outfits/<name>` so other
   characters can wear it.

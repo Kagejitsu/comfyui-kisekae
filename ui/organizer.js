@@ -18,6 +18,11 @@ const KINDS = {
 const EXAMPLES = "examples/";
 const NSFW_BLUR_FROM = 4; // Civitai levels: 1 PG, 2 PG-13, 4 R, 8 X, 16 XXX
 
+// R-18: marked in the preset, or a LoRA preview LoRA Manager rates R or above.
+export function isAdult(p) {
+  return p.nsfw || (p.picture?.nsfw ?? 0) >= NSFW_BLUR_FROM;
+}
+
 export function kindOf(p) {
   if (p.error) return "broken";
   const s = new Set(p.sections);
@@ -33,6 +38,7 @@ export function filtered(state) {
   const { folder, q, tags, kinds, sort } = state.filter;
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
   const out = state.presets.filter((p) => {
+    if (state.nsfwMode === "hide" && isAdult(p)) return false;
     if (folder && folder !== "trash") {
       const prefix = folder.endsWith("/") ? folder : folder + "/";
       if (folder === "user:") {
@@ -138,11 +144,11 @@ function picture(p, state, app) {
   const media = pic.video
     ? h("video", { src, muted: true, loop: true, playsInline: true, preload: "metadata" })
     : h("img", { src, loading: "lazy", alt: "" });
-  const blurred = state.blur && pic.nsfw >= NSFW_BLUR_FROM && !state.revealed.has(p.name);
+  const blurred = state.nsfwMode === "blur" && isAdult(p) && !state.revealed.has(p.name);
   const box = h("div", { class: `pic ${blurred ? "blurred" : ""}` }, media);
   if (blurred) {
     box.append(h("div", { class: "nsfw-cover" },
-      h("span", {}, "R-rated preview"),
+      h("span", {}, p.nsfw ? "R-18" : "R-rated preview"),
       h("button", {
         class: "btn small", onclick: (e) => {
           e.stopPropagation();
@@ -168,6 +174,7 @@ function card(p, index, state, app) {
   picture(p, state, app),
   h("div", { class: "badges" },
     p.sections.map((s) => h("span", { class: "badge" }, SECTION_ABBR[s] || s)),
+    p.nsfw ? h("span", { class: "badge adult", title: "Marked R-18" }, "🔞") : null,
     p.error ? h("span", { class: "badge warn", title: p.error }, "⚠ broken") : null),
   h("div", { class: "card-info" },
     h("div", { class: "title" }, p.title),
@@ -186,9 +193,10 @@ export function renderGrid(el, statusEl, state, app) {
   }
   const list = filtered(state);
   state.visible = list;
-  statusEl.textContent = list.length === state.presets.length
+  const hidden = state.nsfwMode === "hide" ? state.presets.filter(isAdult).length : 0;
+  statusEl.textContent = (list.length === state.presets.length
     ? `${list.length} presets`
-    : `${list.length} of ${state.presets.length} presets`;
+    : `${list.length} of ${state.presets.length} presets`) + (hidden ? ` · ${hidden} R-18 hidden` : "");
   if (!list.length) {
     el.append(h("div", { class: "empty" },
       state.presets.length ? "Nothing matches these filters." : "No presets yet. Save one from the graph with 👘 Save Preset."));
@@ -299,7 +307,12 @@ function detailBody(p, state, app, close) {
     h("button", { class: "btn", onclick: () => duplicateDialog(p, app, close) }, "⧉ Duplicate"),
     h("button", { class: "btn", disabled: p.readonly, title: p.readonly ? "Examples are read-only: duplicate first" : "", onclick: () => renameDialog(p, app, close) }, "↦ Rename / move"),
     h("button", { class: "btn danger", disabled: p.readonly, title: p.readonly ? "Examples are read-only" : "", onclick: () => deleteDialog(p, state, app, close) }, "🗑 Delete"),
-    h("button", { class: "btn ghost", onclick: () => copyText(p.name).then(() => toast(`Copied ${p.name}`)) }, "⧉ Copy name"));
+    h("button", { class: "btn ghost", onclick: () => copyText(p.name).then(() => toast(`Copied ${p.name}`)) }, "⧉ Copy name"),
+    h("button", {
+      class: `btn ${p.nsfw ? "on-adult" : ""}`, disabled: p.readonly,
+      title: p.readonly ? "Examples are read-only" : p.nsfw ? "Marked R-18: click to unmark" : "Mark this preset R-18",
+      onclick: () => toggleAdult(p, app, close),
+    }, p.nsfw ? "🔞 R-18: on" : "🔞 R-18: off"));
 
   return h("div", { class: "detail-grid" },
     h("div", { class: "detail-pic" }, picture(p, state, app)),
@@ -316,6 +329,21 @@ function detailBody(p, state, app, close) {
           p.refs.length ? p.refs.map((r) => link(r, app)) : h("span", { class: "muted" }, "nothing")),
         h("div", {}, h("div", { class: "label" }, "Used by"),
           usedBy.length ? usedBy.map((r) => link(r, app)) : h("span", { class: "muted" }, "nothing")))));
+}
+
+async function toggleAdult(p, app, closeDetail) {
+  try {
+    const { data, etag } = await api.preset(p.name);
+    if (p.nsfw) delete data.nsfw;
+    else data.nsfw = true;
+    await api.save(p.name, data, etag);
+    toast(`${p.name} ${p.nsfw ? "is no longer marked R-18" : "marked R-18"}`, "ok");
+    closeDetail();
+    await app.reload();
+    app.openByName(p.name);
+  } catch (e) {
+    toast(e.message, "error", 7000);
+  }
 }
 
 // -- dialogs --------------------------------------------------------------------------------

@@ -42,12 +42,15 @@ class TestIndex(LibCase):
         (self.user / "characters" / "roxy.webp").write_bytes(b"x")
         d = self.raw("characters/roxy")
         d["tags"] = ["Mushoku", " mushoku ", "Blue  Hair"]
+        d["nsfw"] = True
         (self.user / "characters" / "roxy.json").write_text(json.dumps(d))
         entries = L.index(self.lib)
         roxy = self.entry(entries, "characters/roxy")
         self.assertEqual(roxy["title"], "Roxy")
         self.assertEqual(roxy["tags"], ["mushoku", "blue hair"])
         self.assertTrue(roxy["picture"])
+        self.assertTrue(roxy["nsfw"])
+        self.assertFalse(self.entry(entries, "characters/shinobu")["nsfw"])
         self.assertIn("outfit", roxy["sections"])
         self.assertEqual(roxy["loras"][0]["trigger"], "roxy migurdia")
         self.assertIn("twin braids", roxy["search"])
@@ -65,8 +68,9 @@ class TestSave(LibCase):
     def test_create_update_and_conflicts(self):
         data = {"kisekae": 1, "name": "New", "tags": ["A", "a", " b "],
                 "sections": {"hair": {"fields": {"color": "red hair"}}}}
-        tag = L.save(self.lib, "characters/new", data, None)
+        tag = L.save(self.lib, "characters/new", {**data, "nsfw": True}, None)
         self.assertEqual(self.raw("characters/new")["tags"], ["a", "b"])
+        self.assertEqual(list(self.raw("characters/new")), ["kisekae", "name", "tags", "nsfw", "sections"])
         with self.assertRaises(L.Conflict):  # create, but it exists now
             L.save(self.lib, "characters/new", data, None)
         data["sections"]["hair"]["fields"]["color"] = "blue hair"
@@ -84,6 +88,11 @@ class TestSave(LibCase):
             L.save(self.lib, "x/y", bad, None)
         with self.assertRaisesRegex(KisekaeError, "tags"):
             L.save(self.lib, "x/y", {"kisekae": 1, "tags": "oops"}, None)
+        with self.assertRaisesRegex(KisekaeError, "nsfw"):
+            L.save(self.lib, "x/y", {"kisekae": 1, "nsfw": "yes"}, None)
+        L.save(self.lib, "x/sfw", {"kisekae": 1, "nsfw": False}, None)
+        self.assertNotIn("nsfw", self.raw("x/sfw"))  # only R-18 presets carry the flag
+        shutil.rmtree(self.user / "x")
         with self.assertRaisesRegex(KisekaeError, "examples/"):
             L.save(self.lib, "examples/characters/aoi", {"kisekae": 1}, None)
         self.assertFalse((self.user / "x").exists())
@@ -167,13 +176,13 @@ class TestTrash(LibCase):
 class TestSaveNodeKeepsMetadata(LibCase):
     def test_tags_and_description_survive_a_graph_save(self):
         d = self.raw("characters/roxy")
-        d["tags"], d["description"] = ["mushoku"], "set in Tansu"
+        d["tags"], d["description"], d["nsfw"] = ["mushoku"], "set in Tansu", True
         (self.user / "characters/roxy.json").write_text(json.dumps(d))
         ch = C.load_preset(None, self.lib.resolve("characters/roxy"), "characters/roxy")
         data, _ = char_to_preset(ch, self.lib, "characters/roxy")
         data = keep_file_metadata(self.lib, "characters/roxy", data)
-        self.assertEqual((data["tags"], data["description"]), (["mushoku"], "set in Tansu"))
-        self.assertEqual(list(data)[:4], ["kisekae", "name", "description", "tags"])
+        self.assertEqual((data["tags"], data["description"], data["nsfw"]), (["mushoku"], "set in Tansu", True))
+        self.assertEqual(list(data)[:5], ["kisekae", "name", "description", "tags", "nsfw"])
         data2, _ = char_to_preset(ch, self.lib, "characters/roxy", description="new words")
         self.assertEqual(keep_file_metadata(self.lib, "characters/roxy", data2)["description"], "new words")
         write_preset(self.lib, "characters/roxy", data, overwrite=True)

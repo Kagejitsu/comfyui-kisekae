@@ -1,3 +1,4 @@
+from . import routes  # noqa: F401  (registers the Tansu page and API on ComfyUI's server)
 from .debug import KisekaeDebugJSON, KisekaeDebugPrompt
 from .preset_io import KisekaeLoadPreset, KisekaeSavePreset
 from .prompt import KisekaePrompt

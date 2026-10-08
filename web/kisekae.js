@@ -68,3 +68,19 @@ app.registerExtension({
         };
     },
 });
+
+// 👘 Tansu (the preset organizer) in the top bar. Shift+click opens a separate window.
+app.registerExtension({
+    name: "kisekae.tansu",
+    actionBarButtons: [{
+        icon: "",
+        label: "👘 Tansu",
+        tooltip: "Tansu: browse and organize Kisekae presets (Shift+click: new window)",
+        onClick: (event) => {
+            const url = `${window.location.origin}/kisekae`;
+            if (event?.shiftKey) window.open(url, "_blank", "width=1400,height=900,resizable=yes");
+            else window.open(url, "_blank");
+        },
+    }],
+});
+

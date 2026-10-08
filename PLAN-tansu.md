@@ -4,7 +4,7 @@
 web UI, in the spirit of LoRA Manager's tab, for browsing, editing and organizing
 Kisekae presets. The name is a working title and easy to change.
 
-Status: **step 1a done 2026-10-08**: `kisekae/library.py` (index, refs, save with conflict check, rename with ref rewrite, duplicate, trash/restore, draft resolve, add_vocab), Save Preset keeps tags/description; 57 tests green. Next: 1b (API + organizer).
+Status: **steps 1a+1b done 2026-10-08**: library core (57 tests) + `/kisekae` organizer page (folder tree, search, sort, kind & tri-state tag chips, picture cards with LoRA-preview and extends fallback, NSFW blur, detail panel with prompt/refs, rename with dry run, duplicate, trash/restore) + 👘 Tansu action-bar button. Next: 1c (editor).
 
 ---
 

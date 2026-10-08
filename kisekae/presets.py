@@ -172,16 +172,17 @@ class PresetLibrary:
             raise KisekaeError(f"{path}: invalid JSON at line {e.lineno} column {e.colno}: {e.msg}") from None
         except OSError as e:
             raise KisekaeError(f"{path}: cannot read: {e.strerror}") from None
-        if not isinstance(data, dict):
-            raise KisekaeError(f"{path}: top level must be a JSON object")
-        version = data.get("kisekae")
-        if version != SCHEMA_VERSION:
-            raise KisekaeError(
-                f"{path}: expected \"kisekae\": {SCHEMA_VERSION}, found {version!r}")
+        check_raw(data, str(path))
         return data, path
 
     def resolve(self, name: str) -> Resolved:
         return _Resolver(self).preset(check_name(name), ())
+
+    def resolve_draft(self, name: str, data) -> Resolved:
+        """Resolve unsaved preset ``data`` as if it were saved as ``name``
+        (the editor's live preview). Its refs resolve from disk as usual."""
+        name = check_name(name)
+        return _Resolver(self, {name: data}).preset(name, ())
 
     def resolve_section(self, ref: str, section: str) -> tuple[dict, set[Path]]:
         """Resolve ``ref`` (``name`` or ``name#section``) to one section."""
@@ -201,9 +202,18 @@ class PresetLibrary:
         return "|".join(parts)
 
 
+def check_raw(data, where: str) -> None:
+    if not isinstance(data, dict):
+        raise KisekaeError(f"{where}: top level must be a JSON object")
+    version = data.get("kisekae")
+    if version != SCHEMA_VERSION:
+        raise KisekaeError(f"{where}: expected \"kisekae\": {SCHEMA_VERSION}, found {version!r}")
+
+
 class _Resolver:
-    def __init__(self, lib: PresetLibrary):
+    def __init__(self, lib: PresetLibrary, drafts: dict | None = None):
         self.lib = lib
+        self.drafts = drafts or {}  # name -> unsaved data, used instead of the file
         self.files: set[Path] = set()
         self.cache: dict[str, Resolved] = {}
 
@@ -216,9 +226,13 @@ class _Resolver:
             return self.cache[name]
         chain = chain + (name,)
 
-        raw, path = self.lib.load_raw(name)
-        self.files.add(path)
-        where = str(path)
+        if name in self.drafts:
+            raw, where = self.drafts[name], f"(unsaved) {name}"
+            check_raw(raw, where)
+        else:
+            raw, path = self.lib.load_raw(name)
+            self.files.add(path)
+            where = str(path)
 
         sections: dict = {}
         negative = ""

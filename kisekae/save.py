@@ -99,6 +99,14 @@ def write_preset(lib: PresetLibrary, target: str, data: dict, *, overwrite: bool
         status = "created"
     path.parent.mkdir(parents=True, exist_ok=True)
     lib.check_inside_user_root(path)  # again, after mkdir: catches symlinked folders
+    atomic_write_json(path, data)
+    lib.forget(target)
+    return path, status
+
+
+def atomic_write_json(path: Path, data) -> None:
+    """Write via a temporary file in the same folder, then rename, so an
+    interrupted write never leaves a half-written file."""
     fd, tmp = tempfile.mkstemp(prefix=".kisekae-", suffix=SUFFIX, dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -108,5 +116,25 @@ def write_preset(lib: PresetLibrary, target: str, data: dict, *, overwrite: bool
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise
-    lib.forget(target)
-    return path, status
+
+
+def keep_file_metadata(lib: PresetLibrary, target: str, data: dict) -> dict:
+    """Carry the existing file's tags (and description, when the new data has
+    none) into ``data``, so saving from the graph doesn't wipe what was set in
+    the Tansu editor."""
+    path = lib.user_path(target)
+    try:
+        old = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return data
+    if not isinstance(old, dict):
+        return data
+    out = {}
+    for k, v in data.items():
+        out[k] = v
+        if k == "name":
+            if not data.get("description") and isinstance(old.get("description"), str) and old["description"]:
+                out["description"] = old["description"]
+            if "tags" not in data and isinstance(old.get("tags"), list) and old["tags"]:
+                out["tags"] = old["tags"]
+    return out

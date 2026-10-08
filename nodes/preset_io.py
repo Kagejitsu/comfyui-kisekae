@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 from ..kisekae import char as C
-from ..kisekae.save import char_to_preset, write_preset
+from ..kisekae.save import char_to_preset, keep_file_metadata, write_preset
 from .common import CATEGORY, CHAR, LIB, USER, preset_fingerprint, show
 
 
@@ -66,6 +66,7 @@ class KisekaeSavePreset:
     def run(self, char, path, name, description, keep_refs, overwrite):
         data, notes = char_to_preset(char, LIB, path, keep_refs=keep_refs,
                                      name=name.strip(), description=description.strip())
+        data = keep_file_metadata(LIB, path, data)
         written, status = write_preset(LIB, path, data, overwrite=overwrite)
         rel = written.relative_to(USER)
         text = "\n".join([f"{status.upper()}: {rel}", *notes, "", json.dumps(data, indent=2, ensure_ascii=False)])

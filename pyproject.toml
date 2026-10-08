@@ -1,0 +1,20 @@
+[project]
+name = "comfyui-kisekae"
+description = "Character prompts from reusable JSON presets: chained section nodes (hair, outfit, scene...) with per-field overrides, preset references, LoRAs and templates."
+version = "0.1.0"
+license = { text = "GPL-3.0-or-later" }
+requires-python = ">=3.10"
+dependencies = []
+classifiers = [
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Repository = "https://github.com/Kagejitsu/comfyui-kisekae"
+Documentation = "https://github.com/Kagejitsu/comfyui-kisekae#readme"
+"Bug Tracker" = "https://github.com/Kagejitsu/comfyui-kisekae/issues"
+
+[tool.comfy]
+PublisherId = "kagejitsu"
+DisplayName = "Kisekae 👘"
+Icon = ""

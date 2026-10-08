@@ -2,7 +2,7 @@
   "id": "4597ef1e-328a-4d8d-941a-ee9d3a158688",
   "revision": 0,
   "last_node_id": 74,
-  "last_link_id": 119,
+  "last_link_id": 122,
   "nodes": [
     {
       "id": 46,
@@ -575,7 +575,7 @@
         "state": {
           "lastGroupId": 3,
           "lastNodeId": 74,
-          "lastLinkId": 119,
+          "lastLinkId": 122,
           "lastRerouteId": 0
         },
         "revision": 0,
@@ -796,8 +796,7 @@
                 "name": "CLIP",
                 "type": "CLIP",
                 "links": [
-                  80,
-                  81
+                  120
                 ]
               }
             ],
@@ -1039,7 +1038,7 @@
                 "localized_name": "clip",
                 "name": "clip",
                 "type": "CLIP",
-                "link": 81
+                "link": 122
               },
               {
                 "localized_name": "text",
@@ -1211,7 +1210,7 @@
                 "localized_name": "clip",
                 "name": "clip",
                 "type": "CLIP",
-                "link": 80
+                "link": 121
               },
               {
                 "localized_name": "text",
@@ -1351,7 +1350,7 @@
                 "name": "clip",
                 "shape": 7,
                 "type": "CLIP",
-                "link": null
+                "link": 120
               },
               {
                 "localized_name": "lora_stack",
@@ -1374,7 +1373,10 @@
                 "localized_name": "CLIP",
                 "name": "CLIP",
                 "type": "CLIP",
-                "links": []
+                "links": [
+                  121,
+                  122
+                ]
               },
               {
                 "localized_name": "trigger_words",
@@ -1450,14 +1452,6 @@
             "type": "VAE"
           },
           {
-            "id": 81,
-            "origin_id": 45,
-            "origin_slot": 0,
-            "target_id": 12,
-            "target_slot": 0,
-            "type": "CLIP"
-          },
-          {
             "id": 39,
             "origin_id": 11,
             "origin_slot": 0,
@@ -1480,14 +1474,6 @@
             "target_id": 19,
             "target_slot": 3,
             "type": "LATENT"
-          },
-          {
-            "id": 80,
-            "origin_id": 45,
-            "origin_slot": 0,
-            "target_id": 11,
-            "target_slot": 0,
-            "type": "CLIP"
           },
           {
             "id": 82,
@@ -1608,6 +1594,30 @@
             "target_id": 62,
             "target_slot": 1,
             "type": "STRING"
+          },
+          {
+            "id": 120,
+            "origin_id": 45,
+            "origin_slot": 0,
+            "target_id": 62,
+            "target_slot": 2,
+            "type": "CLIP"
+          },
+          {
+            "id": 121,
+            "origin_id": 62,
+            "origin_slot": 1,
+            "target_id": 11,
+            "target_slot": 0,
+            "type": "CLIP"
+          },
+          {
+            "id": 122,
+            "origin_id": 62,
+            "origin_slot": 1,
+            "target_id": 12,
+            "target_slot": 0,
+            "type": "CLIP"
           }
         ],
         "extra": {}
@@ -1625,8 +1635,8 @@
     "ds": {
       "scale": 0.6632528616378011,
       "offset": [
-        1706.1144619826032,
-        374.96578844318884
+        1917.1952994428668,
+        288.5231255886575
       ]
     }
   },

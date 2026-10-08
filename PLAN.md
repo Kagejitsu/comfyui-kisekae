@@ -6,7 +6,7 @@ append/replace toggle) on every field. Nodes are chained; each passes a JSON
 character state to the next, and a Prompt node can be attached anywhere.
 
 License: **GPL-3.0**. Public repo: `Kagejitsu/comfyui-kisekae` (created only
-with Kate's go-ahead). Status: **phase 3 done 2026-10-07**: 13 nodes, 46 unittest tests green, live checks pass (conflict rules, negatives, Save Preset round trip, exact token count via Anima's Qwen tokenizer). Phase 4 (polish & publish) in progress: section-node text/append inputs are "advanced" (hidden behind the node's Show advanced inputs toggle; auto-opened when in use), new nodes start compact.
+with Kate's go-ahead). Status: **phase 3 done 2026-10-07**: 13 nodes, 46 unittest tests green, live checks pass (conflict rules, negatives, Save Preset round trip, exact token count via Anima's Qwen tokenizer). Phase 4 (polish & publish) in progress: section-node text/append inputs are "advanced" (hidden behind the node's Show advanced inputs toggle; auto-opened when in use), new nodes start compact. Next: **Tansu** preset organizer/editor, see PLAN-tansu.md.
 
 ---
 

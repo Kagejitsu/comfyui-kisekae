@@ -50,7 +50,7 @@ comfyui-kisekae/
     vocab/<section>.json   default dropdown values
     templates/*.txt        prompt layout templates (anima-mixed, illustrious-tags)
     examples/              example presets (original characters only)
-  examples/workflows/      example .json workflows for README + smoke tests
+  examples/workflows/      example .json workflows (kept out of data/examples: that folder is the preset library)
   tests/                   pytest against kisekae/ core
 ```
 

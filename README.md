@@ -58,6 +58,21 @@ The nodes appear under the **kisekae** category, all named "👘 Kisekae …".
 A Prompt node can attach anywhere in a chain, and a chain can branch: one
 character can feed two different Outfit nodes.
 
+### Example workflow
+
+[`examples/workflows/anima-kisekae.json`](examples/workflows/anima-kisekae.json)
+is a complete text-to-image workflow for Anima. It has a Kisekae chain (Load
+Preset → Outfit → Style → Load Preset in `merge` mode → Prompt) feeding a
+"Text to Image (Anima)" subgraph. Drag the file onto ComfyUI, then:
+
+1. Pick a character on the first Load Preset (e.g. `examples/characters/aoi`).
+2. Optionally pick an outfit, a style and a scene (`examples/scenes/dramatic`).
+3. Check the model names in the subgraph match your files, then queue.
+
+The subgraph loads LoRAs with LoRA Manager's **LoRA Text Loader**, so this
+workflow needs [LoRA Manager](https://github.com/willmiao/ComfyUI-Lora-Manager).
+The Kisekae nodes themselves don't.
+
 ## Nodes
 
 | Node | What it does |

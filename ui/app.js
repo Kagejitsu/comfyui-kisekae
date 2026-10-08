@@ -1,7 +1,7 @@
 // Tansu: page state and wiring. Views live in organizer.js (and editor.js later).
 
 import { api } from "./api.js";
-import { closeAllDialogs, toast } from "./dom.js";
+import { closeAllDialogs, dialog, h, toast } from "./dom.js";
 import { confirmLeave, editorKeys, openEditor } from "./editor.js";
 import { openDetail, renderFilters, renderGrid, renderTree } from "./organizer.js";
 
@@ -45,7 +45,7 @@ function render() {
   renderTree($("tree"), state, app);
   renderFilters($("filters"), state, app);
   renderGrid($("grid"), $("status"), state, app);
-  $("blur").textContent = state.blur ? "◌" : "◉";
+  $("blur").textContent = state.blur ? "🔞 Blur on" : "🔞 Blur off";
   $("blur").title = state.blur ? "R-rated previews are blurred (click to show them)" : "R-rated previews are shown (click to blur)";
 }
 
@@ -89,6 +89,11 @@ const app = {
       state.trashCount = data.trash;
       for (const tag of [...state.filter.tags.keys()]) {
         if (!(tag in state.tags)) state.filter.tags.delete(tag);
+      }
+      // a remembered folder that has since been emptied, renamed or deleted
+      const f = state.filter.folder;
+      if (f && !["user:", "trash", "examples/"].includes(f) && !state.presets.some((p) => p.name.startsWith(f))) {
+        app.setFolder(null);
       }
     } catch (e) {
       toast(`Could not load the library: ${e.message}`, "error", 8000);
@@ -182,6 +187,28 @@ $("blur").addEventListener("click", () => {
   store("tansu.blur", state.blur);
   render();
 });
+function showHelp() {
+  const keys = [
+    ["/", "or Ctrl+F", "search"],
+    ["Enter", "on a card", "open its details"],
+    ["Double-click", "a card", "open it in the editor"],
+    ["← / →", "in details", "previous / next card"],
+    ["Esc", "", "close the top dialog"],
+    ["Ctrl+S", "in the editor", "save"],
+    ["?", "", "this help"],
+  ];
+  dialog({
+    title: "Shortcuts & tips",
+    body: h("div", { class: "form" },
+      h("table", { class: "keys" }, keys.map(([k, where, what]) =>
+        h("tr", {}, h("td", {}, h("kbd", {}, k)), h("td", { class: "muted" }, where), h("td", {}, what)))),
+      h("p", { class: "muted" }, "Tag chips cycle: click to require the tag, again to exclude it, again to clear."),
+      h("p", { class: "muted" }, "Presets live in ComfyUI/user/default/kisekae/presets/. Press R in ComfyUI after changes here to refresh the node dropdowns.")),
+    actions: [{ label: "Close" }],
+  });
+}
+
+$("help").addEventListener("click", showHelp);
 $("new").addEventListener("click", () => {
   const f = state.filter.folder;
   app.openEditor(null, { folder: f && f !== "user:" && f !== "trash" && !f.startsWith("examples/") ? f : "" });
@@ -199,6 +226,7 @@ window.addEventListener("beforeunload", (e) => {
 document.addEventListener("keydown", (e) => {
   if (editor) return editorKeys(editor, e);
   const typing = e.target.closest?.("input, textarea, select");
+  if (e.key === "?" && !typing && !document.querySelector(".backdrop")) return showHelp();
   if ((e.key === "/" && !typing) || (e.key === "f" && (e.ctrlKey || e.metaKey) && !document.querySelector(".backdrop"))) {
     e.preventDefault();
     $("search").focus();

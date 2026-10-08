@@ -306,3 +306,8 @@ details summary { cursor: pointer; color: var(--muted); margin-top: 0.8rem; font
   .editor-preview { border-left: 0; border-top: 1px solid var(--line); }
   .lora-row { grid-template-columns: 1fr auto 4.6rem auto auto 4.6rem; }
 }
+
+table.keys { border-collapse: collapse; }
+table.keys td { padding: 0.25rem 0.8rem 0.25rem 0; }
+kbd { font-family: var(--mono); font-size: 0.8rem; padding: 0.05rem 0.4rem; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2); }
+.editor-bar kbd, .search kbd { background: transparent; color: inherit; }

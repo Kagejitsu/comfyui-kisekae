@@ -30,6 +30,9 @@ turns it into positive and negative prompts plus LoRAs.
   Unchanged sections are saved as references.
 - **Debug nodes.** See the character data or the rendered prompt at any point in
   a chain, including where each value came from.
+- **Tansu 箪笥, a preset organizer and editor** in its own browser tab: browse
+  presets as picture cards, filter by tags, edit with a live prompt preview, and
+  rename or move presets with every reference updated.
 - No extra Python dependencies.
 
 ## Install
@@ -40,6 +43,9 @@ Clone into `ComfyUI/custom_nodes` and restart ComfyUI:
 cd ComfyUI/custom_nodes
 git clone https://github.com/Kagejitsu/comfyui-kisekae
 ```
+
+It is also published to the [Comfy Registry](https://registry.comfy.org) as
+`comfyui-kisekae`, so ComfyUI-Manager can install it.
 
 The nodes appear under the **kisekae** category, all named "👘 Kisekae …".
 
@@ -200,6 +206,66 @@ inside your preset folder:
   same workflow just reports `UNCHANGED`.
 - It only writes inside the preset folder. `..`, absolute paths, `examples/` and
   symlinks pointing elsewhere are refused.
+
+## Tansu: the preset organizer
+
+*Tansu* (箪笥) is the chest that kisekae clothes come out of. Click **👘 Tansu**
+in ComfyUI's top bar (Shift+click for a separate window) to open your preset
+library in its own tab, at `http://<your ComfyUI>/kisekae`.
+
+![Tansu organizer](docs/screenshots/tansu-organizer.png)
+
+**Organizer**
+
+- **Picture cards:**
+  - Each card shows the preset's own picture: put `roxy.webp`, `.png` or `.jpg`
+    next to `roxy.json`.
+  - Without one, it shows the preview of the preset's LoRA, taken from
+    [LoRA Manager](https://github.com/willmiao/ComfyUI-Lora-Manager)'s files.
+  - Without either, it shows the picture of the preset it `extends`.
+  - Previews rated above PG-13 are blurred until you click Show. **🔞 Blur**
+    turns this off.
+- **Finding presets:**
+  - a folder tree;
+  - search across names, tags, field values and LoRA names;
+  - kind filters (characters, outfits, scenes & styles, broken);
+  - **tag chips**: click once to require a tag, again to exclude it, again to
+    clear.
+- **Details:** click a card to see its rendered prompt, its LoRAs (found or
+  missing), what it **uses** and what it is **used by**.
+- **Rename / move** first lists every preset whose `$ref` or `extends` will be
+  updated, then moves the file and rewrites those references.
+- **Delete** moves a preset to a Trash folder (`presets/.trash/`, which node
+  dropdowns ignore). **Restore** puts it back.
+- Shipped examples are read-only: **Duplicate** copies one into your folder.
+
+![Tansu editor](docs/screenshots/tansu-editor.png)
+
+**Editor**
+
+- **Opening it:** ✎ Edit, a double-click on a card, or **＋ New preset**.
+- **Sections:** each one is **none** (or **inherit** when the preset extends
+  another), **fields** written here, or a **$ref** to another preset with
+  optional fields on top. Empty fields show in grey what the reference or
+  parent provides.
+- **Fields** suggest the node dropdown values and take an optional weight.
+  **＋ dropdown** adds a new value to the nodes' dropdowns, via your vocab
+  overlay.
+- **LoRAs:** search your `loras` folder. Trigger words fill in from LoRA Manager
+  when available.
+- **Tags, description and extends** are set in the header.
+- **⇪ As preset** moves a section into its own preset and references it. For
+  example, it turns a character's outfit into `outfits/<name>` so other
+  characters can wear it.
+- **Raw JSON** tab for anything the form doesn't cover.
+- The **live preview** renders the prompt as you type, with any template.
+- **Saving:** Ctrl+S saves. If the file changed meanwhile (for example, the Save
+  Preset node wrote it), you choose between reloading their version and
+  overwriting with yours.
+
+Save Preset in the graph keeps the tags and description you set in Tansu. After
+changing presets in Tansu, press **R** in ComfyUI to refresh the node dropdowns.
+Press **?** in Tansu for its keyboard shortcuts.
 
 ## Templates
 

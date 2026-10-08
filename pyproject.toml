@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-kisekae"
-description = "Character prompts from reusable JSON presets: chained section nodes (hair, outfit, scene...) with per-field overrides, preset references, LoRAs and templates."
-version = "0.1.0"
+description = "Character prompts from reusable JSON presets: chained section nodes (hair, outfit, scene...) with per-field overrides, preset references, LoRAs and templates, plus Tansu, a preset organizer and editor tab."
+version = "0.2.0"
 license = { text = "GPL-3.0-or-later" }
 requires-python = ">=3.10"
 dependencies = []

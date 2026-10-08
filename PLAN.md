@@ -343,7 +343,7 @@ and also output it as `text`.
 | **1. Core** ✅ | `schema`, `char`, `presets` (+refs), `render`, `tags`, `loras`, tests | ✅ 2026-10-07: 24 tests green; Roxy prompt reproduced (`tests/test_core.py`) |
 | **2. Nodes MVP** ✅ | section factory + 8 section nodes, Load Preset, Prompt (incl. LORA_STACK/lora_syntax/triggers, pulled forward), **Debug JSON**, **Debug Prompt**, `kisekae.js`, vocab, example presets | ✅ loads with no errors; live `/prompt` chain run OK; cache re-runs when a `$ref`'d file changes. ⏳ Kate's hands-on trial in the UI |
 | **3. Persistence & LoRAs** ✅ | Save Preset (keep_refs), vocab negatives + conflict rules, real token count (optional CLIP input) | Save → refresh → load round-trips; stack feeds LoraManager Lora Loader |
-| **4. Polish & publish** | widget UX (~~hide `_append`/`_text` until used~~ done via `advanced` inputs, section colours), README with screenshots, `pyproject.toml`, GitHub repo, Registry | Kate approves → public repo + Registry listing |
+| **4. Polish & publish** | widget UX (~~hide `_append`/`_text` until used~~ done via `advanced` inputs, section colours), README (done; placeholder screenshots in docs/screenshots/ for Kate to replace), `pyproject.toml`, GitHub repo, Registry | Kate approves → public repo + Registry listing |
 | **Later** | random/wildcard fields with seed, WD14 "preset from image", field-level refs, multi-character, V3 node API | — |
 
 A git commit at the end of each phase. GitHub creation, pushing and Registry

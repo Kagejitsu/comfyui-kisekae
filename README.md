@@ -269,6 +269,8 @@ library in its own tab, at `http://<your ComfyUI>/kisekae`.
 
 **Dropdowns page**
 
+![Tansu dropdowns page](docs/screenshots/tansu-dropdowns.png)
+
 - Pick a field on the left, e.g. Outfit → full.
 - Each value shows whether it is **shipped**, **yours** or **changed**, with its
   negative and the fields it **clears** when picked.
@@ -277,6 +279,8 @@ library in its own tab, at `http://<your ComfyUI>/kisekae`.
 - Changes go to your vocab overlay files; the shipped files are never touched.
 
 **Templates page**
+
+![Tansu templates page](docs/screenshots/tansu-templates.png)
 
 - Edit prompt layouts in a text box. A palette inserts placeholders: Shift+click
   a field to insert `{!section.field}`, which leaves it out.

@@ -9,6 +9,7 @@ export function h(tag, props = {}, ...children) {
     else if (k === "dataset") Object.assign(el.dataset, v);
     else if (k === "style" && typeof v === "object") Object.assign(el.style, v);
     else if (k.startsWith("on") && typeof v === "function") el.addEventListener(k.slice(2), v);
+    else if (k === "value") el.value = v; // the property: <textarea> ignores the attribute
     else if (k in el && typeof v !== "string") el[k] = v; // e.g. checked, disabled, value
     else el.setAttribute(k, v === true ? "" : String(v));
   }
@@ -73,7 +74,12 @@ export function dialog({ title, body, actions = [], wide = false, onClose }) {
   document.addEventListener("keydown", onKey, true);
   (box.querySelector("input, textarea, select") || buttons.at(-1))?.focus();
   close.box = box;
+  back.closeDialog = close;
   return close;
+}
+
+export function closeAllDialogs() {
+  for (const b of [...document.querySelectorAll(".backdrop")].reverse()) b.closeDialog?.();
 }
 
 export function copyText(text) {

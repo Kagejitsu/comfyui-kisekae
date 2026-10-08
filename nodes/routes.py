@@ -210,6 +210,9 @@ async def render_preset(request: web.Request) -> web.Response:
     _stack, status = resolve_loras(r.loras)
     return _json({
         "problems": [], "positive": r.positive, "negative": r.negative, "tokens": rough_tokens(r.positive),
+        # resolved field values, so the editor can show what a $ref/extends section inherits
+        "sections": {sec: {f: v["value"] for f, v in data["fields"].items()}
+                     for sec, data in resolved.sections.items()},
         "breakdown": [[ph, items] for ph, items in r.breakdown],
         "neg_conflicts": r.neg_conflicts,
         "loras": [{"name": l["name"], "strength": l["strength"], "clip_strength": l["clip_strength"],

@@ -28,11 +28,12 @@
       <option value="mtime">Recently changed</option>
     </select>
     <div class="spacer"></div>
-    <button id="new" class="btn primary" disabled title="The editor arrives in the next build step">＋ New preset</button>
+    <button id="new" class="btn primary" title="Create a preset in the current folder">＋ New preset</button>
     <button id="refresh" class="btn icon" title="Reload the library">⟳</button>
     <button id="blur" class="btn icon" title="Blur previews rated above PG-13"></button>
     <button id="theme" class="btn icon" title="Light / dark">◐</button>
   </header>
+  <section id="editor" class="editor" hidden></section>
   <div class="layout">
     <nav id="tree" class="sidebar" aria-label="Folders"></nav>
     <main>

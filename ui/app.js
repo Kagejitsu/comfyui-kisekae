@@ -1,7 +1,8 @@
 // Tansu: page state and wiring. Views live in organizer.js (and editor.js later).
 
 import { api } from "./api.js";
-import { toast } from "./dom.js";
+import { closeAllDialogs, toast } from "./dom.js";
+import { confirmLeave, editorKeys, openEditor } from "./editor.js";
 import { openDetail, renderFilters, renderGrid, renderTree } from "./organizer.js";
 
 const $ = (id) => document.getElementById(id);
@@ -48,6 +49,36 @@ function render() {
   $("blur").title = state.blur ? "R-rated previews are blurred (click to show them)" : "R-rated previews are shown (click to blur)";
 }
 
+let editor = null; // the open editor, if any
+let lastHash = location.hash;
+
+function showView(editing) {
+  document.body.classList.toggle("editing", editing);
+  $("editor").hidden = !editing;
+  document.querySelector(".layout").hidden = editing;
+  lastHash = location.hash;
+}
+
+async function showEditor(name, folder) {
+  showView(true);
+  editor = await openEditor(app, state, { name, folder });
+  document.title = `${name || "New preset"} · Tansu`;
+}
+
+function showOrganizer() {
+  editor = null;
+  showView(false);
+  document.title = "Tansu · Kisekae presets";
+}
+
+// #edit/<name> and #new[/<folder>] open the editor; anything else is the organizer.
+async function route() {
+  const m = location.hash.match(/^#(edit|new)(?:\/(.*))?$/);
+  if (!m) return showOrganizer();
+  const arg = decodeURIComponent(m[2] || "");
+  return m[1] === "edit" ? showEditor(arg, "") : showEditor(null, arg);
+}
+
 const app = {
   async reload() {
     try {
@@ -87,6 +118,24 @@ const app = {
   openDetail(index) {
     openDetail(state, index, app);
   },
+  async openEditor(name, { replace = false, folder = "" } = {}) {
+    if (!replace && editor && !(await confirmLeave(editor))) return;
+    closeAllDialogs();
+    history.pushState(null, "", name ? `#edit/${encodeURIComponent(name)}` : `#new${folder ? `/${encodeURIComponent(folder)}` : ""}`);
+    await showEditor(name, folder);
+  },
+  async closeEditor(force = false) {
+    if (!force && !(await confirmLeave(editor))) return;
+    history.pushState(null, "", location.pathname);
+    showOrganizer();
+    await app.reload();
+  },
+  editorSaved(name) {
+    history.replaceState(null, "", `#edit/${encodeURIComponent(name)}`);
+    lastHash = location.hash;
+    document.title = `${name} · Tansu`;
+    app.reload(); // keep the organizer and the editor's preset pickers current
+  },
   openByName(name) {
     let i = state.visible.findIndex((p) => p.name === name);
     if (i < 0) {
@@ -97,7 +146,7 @@ const app = {
       i = state.visible.findIndex((p) => p.name === name);
     }
     if (i < 0) return toast(`${name} is not in the library`, "error");
-    document.querySelectorAll(".backdrop").forEach((b) => b.remove());
+    closeAllDialogs();
     openDetail(state, i, app);
   },
 };
@@ -133,7 +182,22 @@ $("blur").addEventListener("click", () => {
   store("tansu.blur", state.blur);
   render();
 });
+$("new").addEventListener("click", () => {
+  const f = state.filter.folder;
+  app.openEditor(null, { folder: f && f !== "user:" && f !== "trash" && !f.startsWith("examples/") ? f : "" });
+});
+window.addEventListener("hashchange", async () => {
+  if (editor?.dirty && !(await confirmLeave(editor))) {
+    history.pushState(null, "", lastHash || location.pathname); // stay in the editor
+    return;
+  }
+  route();
+});
+window.addEventListener("beforeunload", (e) => {
+  if (editor?.dirty) e.preventDefault();
+});
 document.addEventListener("keydown", (e) => {
+  if (editor) return editorKeys(editor, e);
   const typing = e.target.closest?.("input, textarea, select");
   if ((e.key === "/" && !typing) || (e.key === "f" && (e.ctrlKey || e.metaKey) && !document.querySelector(".backdrop"))) {
     e.preventDefault();
@@ -143,7 +207,7 @@ document.addEventListener("keydown", (e) => {
 });
 // Come back to the tab after saving from the graph: pick up the changes.
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && !document.querySelector(".backdrop")) app.reload();
+  if (document.visibilityState === "visible" && !editor && !document.querySelector(".backdrop")) app.reload();
 });
 
-app.reload();
+app.reload().then(route);

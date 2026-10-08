@@ -2,7 +2,7 @@
 // Pure rendering over the state object owned by app.js; actions call back into it.
 
 import { api } from "./api.js";
-import { append, clear, copyText, dialog, h, toast } from "./dom.js";
+import { append, clear, closeAllDialogs, copyText, dialog, h, toast } from "./dom.js";
 
 const SECTION_ABBR = {
   identity: "ID", head: "HEAD", hair: "HAIR", body: "BODY",
@@ -162,6 +162,7 @@ function card(p, index, state, app) {
   return h("article", {
     class: `card ${p.error ? "broken" : ""} ${p.readonly ? "readonly" : ""}`, tabindex: 0,
     onclick: () => app.openDetail(index),
+    ondblclick: () => { closeAllDialogs(); app.openEditor(p.name); },
     onkeydown: (e) => { if (e.key === "Enter") app.openDetail(index); },
   },
   picture(p, state, app),
@@ -294,7 +295,7 @@ function detailBody(p, state, app, close) {
   }
 
   const actions = h("div", { class: "detail-actions" },
-    h("button", { class: "btn primary", disabled: true, title: "The editor arrives in the next build step" }, "✎ Edit"),
+    h("button", { class: "btn primary", onclick: () => { close(); app.openEditor(p.name); } }, p.readonly ? "👁 View" : "✎ Edit"),
     h("button", { class: "btn", onclick: () => duplicateDialog(p, app, close) }, "⧉ Duplicate"),
     h("button", { class: "btn", disabled: p.readonly, title: p.readonly ? "Examples are read-only: duplicate first" : "", onclick: () => renameDialog(p, app, close) }, "↦ Rename / move"),
     h("button", { class: "btn danger", disabled: p.readonly, title: p.readonly ? "Examples are read-only" : "", onclick: () => deleteDialog(p, state, app, close) }, "🗑 Delete"),

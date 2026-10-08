@@ -4,7 +4,7 @@
 web UI, in the spirit of LoRA Manager's tab, for browsing, editing and organizing
 Kisekae presets. The name is a working title and easy to change.
 
-Status: **steps 1a+1b done 2026-10-08**: library core (57 tests) + `/kisekae` organizer page (folder tree, search, sort, kind & tri-state tag chips, picture cards with LoRA-preview and extends fallback, NSFW blur, detail panel with prompt/refs, rename with dry run, duplicate, trash/restore) + 👘 Tansu action-bar button. Next: 1c (editor).
+Status: **steps 1a–1c done 2026-10-08**: library core (57 tests) + `/kisekae` organizer page (folder tree, search, sort, kind & tri-state tag chips, picture cards with LoRA-preview and extends fallback, NSFW blur, detail panel with prompt/refs, rename with dry run, duplicate, trash/restore) + 👘 Tansu action-bar button. Editor (1c): form per section with none/inherit · fields · $ref modes, inherited values as placeholders, vocab suggestions + "＋ dropdown", weights, LoRA rows with picker and trigger autofill, tags, extends, raw JSON tab, live preview with template picker, Ctrl+S save with conflict dialog, read-only examples with "Duplicate to edit", "As preset" section extraction, unsaved-changes guard, URL routing (#edit/…, #new/…). Next: 1d (polish & release).
 
 ---
 

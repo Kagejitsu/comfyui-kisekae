@@ -1,13 +1,13 @@
 // Fetch wrappers for /kisekae/api. Errors throw an Error whose message is the
 // server's {"error": ...} text; `.conflict` is set for 409s.
 
-async function call(method, path, { query, body } = {}) {
+async function call(method, path, { query, body, blob } = {}) {
   const url = new URL(`/kisekae/api/${path}`, location.origin);
   for (const [k, v] of Object.entries(query || {})) url.searchParams.set(k, v);
   const res = await fetch(url, {
     method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
+    headers: body ? { "Content-Type": "application/json" } : blob ? { "Content-Type": "application/octet-stream" } : undefined,
+    body: body ? JSON.stringify(body) : blob,
   });
   let data = null;
   try {
@@ -42,6 +42,11 @@ export const api = {
   templates: () => call("GET", "templates"),
   saveTemplate: (name, text) => call("PUT", "template", { body: { name, text } }),
   trashTemplate: (name) => call("POST", "template/trash", { body: { name } }),
-  pictureUrl: (name, version) =>
-    `/kisekae/api/picture?name=${encodeURIComponent(name)}&v=${encodeURIComponent(version ?? "")}`,
+  setPicture: (name, blob) => call("POST", "picture", { query: { name }, blob }),
+  pictureFromOutput: (name, type, path) => call("POST", "picture/output", { body: { name, type, path } }),
+  removePicture: (name) => call("POST", "picture/remove", { body: { name } }),
+  outputs: (limit = 60) => call("GET", "outputs", { query: { limit } }),
+  outputThumbUrl: (o) => `/kisekae/api/outputs/thumb?type=${encodeURIComponent(o.type)}&path=${encodeURIComponent(o.path)}`,
+  pictureUrl: (name, version, { thumb = false } = {}) =>
+    `/kisekae/api/picture?name=${encodeURIComponent(name)}&v=${encodeURIComponent(version ?? "")}${thumb ? "&thumb=1" : ""}`,
 };

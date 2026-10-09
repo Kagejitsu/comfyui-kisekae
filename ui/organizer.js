@@ -3,6 +3,7 @@
 
 import { api } from "./api.js";
 import { append, clear, closeAllDialogs, copyText, dialog, h, toast } from "./dom.js";
+import { acceptPictureDrops, pictureDialog } from "./picture.js";
 
 const SECTION_ABBR = {
   identity: "ID", head: "HEAD", hair: "HAIR", body: "BODY",
@@ -134,13 +135,13 @@ export function renderFilters(el, state, app) {
 
 // -- cards ---------------------------------------------------------------------------
 
-function picture(p, state, app) {
+function picture(p, state, app, { thumb = false } = {}) {
   const pic = p.picture;
   if (!pic) {
     return h("div", { class: `pic placeholder kind-${kindOf(p)}` },
       h("span", { class: "big" }, KINDS[kindOf(p)].icon));
   }
-  const src = api.pictureUrl(p.name, pic.version);
+  const src = api.pictureUrl(p.name, pic.version, { thumb });
   const media = pic.video
     ? h("video", { src, muted: true, loop: true, playsInline: true, preload: "metadata" })
     : h("img", { src, loading: "lazy", alt: "" });
@@ -165,13 +166,13 @@ function picture(p, state, app) {
 
 function card(p, index, state, app) {
   const loras = p.loras.length;
-  return h("article", {
+  const el = h("article", {
     class: `card ${p.error ? "broken" : ""} ${p.readonly ? "readonly" : ""}`, tabindex: 0,
     onclick: () => app.openDetail(index),
     ondblclick: () => { closeAllDialogs(); app.openEditor(p.name); },
     onkeydown: (e) => { if (e.key === "Enter") app.openDetail(index); },
   },
-  picture(p, state, app),
+  picture(p, state, app, { thumb: true }),
   h("div", { class: "badges" },
     p.sections.map((s) => h("span", { class: "badge" }, SECTION_ABBR[s] || s)),
     p.nsfw ? h("span", { class: "badge adult", title: "Marked R-18" }, "🔞") : null,
@@ -183,6 +184,8 @@ function card(p, index, state, app) {
       p.tags.slice(0, 4).map((t) => h("span", { class: "pill" }, t)),
       p.tags.length > 4 ? h("span", { class: "pill" }, `+${p.tags.length - 4}`) : null,
       loras ? h("span", { class: "lora-count", title: p.loras.map((l) => l.name).join("\n") }, `◆ ${loras} LoRA${loras > 1 ? "s" : ""}`) : null)));
+  if (!p.readonly) acceptPictureDrops(el, p, () => app.reload());
+  return el;
 }
 
 export function renderGrid(el, statusEl, state, app) {
@@ -302,8 +305,27 @@ function detailBody(p, state, app, close) {
     promptBox.remove();
   }
 
+  const afterPicture = async () => {
+    close();
+    await app.reload();
+    app.openByName(p.name);
+  };
+  const pic = h("div", { class: "detail-pic" }, picture(p, state, app));
+  if (!p.readonly) {
+    pic.classList.add("settable");
+    pic.title = "Click to change the picture, or drop an image here";
+    pic.addEventListener("click", (e) => {
+      if (!e.target.closest("button")) pictureDialog(p, { onDone: afterPicture }); // not the blur's Show
+    });
+    acceptPictureDrops(pic, p, afterPicture);
+  }
+
   const actions = h("div", { class: "detail-actions" },
     h("button", { class: "btn primary", onclick: () => { close(); app.openEditor(p.name); } }, p.readonly ? "👁 View" : "✎ Edit"),
+    h("button", {
+      class: "btn", disabled: p.readonly, title: p.readonly ? "Examples are read-only: duplicate first" : "Upload, drop or paste a picture, or pick a recent generation",
+      onclick: () => pictureDialog(p, { onDone: afterPicture }),
+    }, "🖼 Picture…"),
     h("button", { class: "btn", onclick: () => duplicateDialog(p, app, close) }, "⧉ Duplicate"),
     h("button", { class: "btn", disabled: p.readonly, title: p.readonly ? "Examples are read-only: duplicate first" : "", onclick: () => renameDialog(p, app, close) }, "↦ Rename / move"),
     h("button", { class: "btn danger", disabled: p.readonly, title: p.readonly ? "Examples are read-only" : "", onclick: () => deleteDialog(p, state, app, close) }, "🗑 Delete"),
@@ -315,7 +337,7 @@ function detailBody(p, state, app, close) {
     }, p.nsfw ? "🔞 R-18: on" : "🔞 R-18: off"));
 
   return h("div", { class: "detail-grid" },
-    h("div", { class: "detail-pic" }, picture(p, state, app)),
+    pic,
     h("div", { class: "detail-main" },
       h("div", { class: "path mono" }, p.readonly ? "🔒 " : "", p.name),
       actions,

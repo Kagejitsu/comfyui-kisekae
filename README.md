@@ -218,11 +218,20 @@ library in its own tab, at `http://<your ComfyUI>/kisekae`.
 **Organizer**
 
 - **Picture cards:**
-  - Each card shows the preset's own picture: put `roxy.webp`, `.png` or `.jpg`
+  - Each card shows the preset's own picture, `roxy.webp` (or `.png`, `.jpg`)
     next to `roxy.json`.
   - Without one, it shows the preview of the preset's LoRA, taken from
     [LoRA Manager](https://github.com/willmiao/ComfyUI-Lora-Manager)'s files.
   - Without either, it shows the picture of the preset it `extends`.
+- **Setting a picture:** **🖼 Picture…** in the detail panel or the editor (or
+  click the picture) lets you:
+  - pick one of your **recent generations**, newest first, from ComfyUI's
+    output folder;
+  - upload a file, **drop** one, or **paste** one with Ctrl+V.
+
+  You can also drop an image straight onto a card, including one dragged from
+  ComfyUI's own queue or gallery. Replaced and removed pictures go to
+  `presets/.trash/`.
 - **R-18 presets:**
   - Mark a preset with **🔞 R-18** in its detail panel or in the editor. This
     saves `"nsfw": true` in its file; the nodes ignore it.

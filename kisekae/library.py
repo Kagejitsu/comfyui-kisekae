@@ -272,6 +272,76 @@ def duplicate(lib: PresetLibrary, src: str, dst: str, title: str = "") -> str:
     return check_name(dst)
 
 
+# -- pictures ------------------------------------------------------------------
+
+MAX_PICTURE = 32 * 1024 * 1024
+
+
+def picture_type(data: bytes) -> str:
+    """The file extension for an image, from its signature (not its name or
+    the browser's say-so). Anything but PNG, JPEG or WebP is refused."""
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return ".png"
+    if data.startswith(b"\xff\xd8\xff"):
+        return ".jpg"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return ".webp"
+    raise KisekaeError("that isn't a PNG, JPEG or WebP image")
+
+
+def _picture_target(lib: PresetLibrary, name: str) -> Path:
+    name = check_name(name)
+    if is_readonly(lib, name):
+        raise KisekaeError("shipped example presets can't get a picture; duplicate it first")
+    path = lib.user_path(name)
+    if not path.is_file():
+        raise KisekaeError(f"preset {name!r} not found")
+    return path
+
+
+def _trash_pictures(lib: PresetLibrary, path: Path) -> str | None:
+    """Move the preset's current picture(s) to ``.trash/<id>/`` (same relative
+    path), so a replaced or removed picture can still be fished out by hand."""
+    old = _sidecars(path)
+    if not old:
+        return None
+    stamp = _new_trash_id(lib)
+    dest = _trash_root(lib) / stamp / path.relative_to(lib.roots[0].path)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    lib.check_inside_user_root(dest)
+    for p in old:
+        os.replace(p, dest.with_suffix(p.suffix))
+    return stamp
+
+
+def set_picture(lib: PresetLibrary, name: str, data: bytes) -> Path:
+    """Make ``data`` the preset's picture (``roxy.png`` next to ``roxy.json``).
+    The old picture, whatever its format, goes to the trash."""
+    path = _picture_target(lib, name)
+    if len(data) > MAX_PICTURE:
+        raise KisekaeError(f"pictures can be up to {MAX_PICTURE // 2**20} MB")
+    ext = picture_type(data)
+    fd, tmp = tempfile.mkstemp(prefix=".kisekae-", suffix=ext, dir=path.parent)
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(data)
+        os.chmod(tmp, 0o644)  # mkstemp makes it 0600; pictures are ordinary files
+        _trash_pictures(lib, path)
+        os.replace(tmp, path.with_suffix(ext))
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+    return path.with_suffix(ext)
+
+
+def remove_picture(lib: PresetLibrary, name: str) -> str:
+    """Move the preset's own picture to the trash. Returns the trash id."""
+    stamp = _trash_pictures(lib, _picture_target(lib, name))
+    if stamp is None:
+        raise KisekaeError(f"{check_name(name)!r} has no picture of its own")
+    return stamp
+
+
 # -- trash ---------------------------------------------------------------------
 
 def _trash_root(lib: PresetLibrary) -> Path:

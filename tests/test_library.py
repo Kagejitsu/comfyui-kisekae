@@ -173,6 +173,67 @@ class TestTrash(LibCase):
             L.trash(self.lib, "examples/characters/aoi")
 
 
+PNG = b"\x89PNG\r\n\x1a\n" + b"png-body"
+JPEG = b"\xff\xd8\xff\xe0" + b"jpeg-body"
+WEBP = b"RIFF\x10\x00\x00\x00WEBPVP8 " + b"webp-body"
+
+
+class TestPictures(LibCase):
+    def pics(self, name):
+        stem = self.user / name
+        return sorted(p.name for p in stem.parent.glob(stem.name + ".*") if p.suffix != ".json")
+
+    def test_type_from_signature(self):
+        self.assertEqual(L.picture_type(PNG), ".png")
+        self.assertEqual(L.picture_type(JPEG), ".jpg")
+        self.assertEqual(L.picture_type(WEBP), ".webp")
+        for bad in (b"", b"GIF89a....", b"<svg xmlns=...>", b"RIFF\x10\x00\x00\x00WAVEfmt "):
+            with self.assertRaises(KisekaeError):
+                L.picture_type(bad)
+
+    def test_set_replace_and_remove(self):
+        name = "characters/roxy"
+        path = L.set_picture(self.lib, name, PNG)
+        self.assertEqual(path, self.user / "characters" / "roxy.png")
+        self.assertEqual(path.read_bytes(), PNG)
+        self.assertEqual(L.picture_of(self.lib, name), path)
+
+        # another format replaces it; the old one is kept in the trash, not left beside it
+        L.set_picture(self.lib, name, WEBP)
+        self.assertEqual(self.pics("characters/roxy"), ["roxy.webp"])
+        trashed = list((self.user / L.TRASH).rglob("roxy.png"))
+        self.assertEqual([p.read_bytes() for p in trashed], [PNG])
+        self.assertEqual(trashed[0].parent.name, "characters")
+
+        # same format: still replaced, old copy trashed
+        L.set_picture(self.lib, name, WEBP[:-4] + b"new!")
+        self.assertEqual(len(list((self.user / L.TRASH).rglob("roxy.webp"))), 1)
+
+        L.remove_picture(self.lib, name)
+        self.assertEqual(self.pics("characters/roxy"), [])
+        self.assertIsNone(L.picture_of(self.lib, name))
+        with self.assertRaisesRegex(KisekaeError, "no picture"):
+            L.remove_picture(self.lib, name)
+        # picture-only trash folders don't show up as deleted presets
+        self.assertEqual(L.list_trash(self.lib), [])
+        self.assertEqual(list(self.user.glob("characters/.kisekae-*")), [])
+
+    def test_refusals(self):
+        with self.assertRaisesRegex(KisekaeError, "duplicate it first"):
+            L.set_picture(self.lib, "examples/characters/aoi", PNG)
+        with self.assertRaisesRegex(KisekaeError, "not found"):
+            L.set_picture(self.lib, "characters/nobody", PNG)
+        with self.assertRaises(KisekaeError):
+            L.set_picture(self.lib, "../escape", PNG)
+        with self.assertRaisesRegex(KisekaeError, "PNG, JPEG or WebP"):
+            L.set_picture(self.lib, "characters/roxy", b"#!/bin/sh\n")
+        # a refused upload leaves the existing picture alone
+        L.set_picture(self.lib, "characters/roxy", PNG)
+        with self.assertRaises(KisekaeError):
+            L.set_picture(self.lib, "characters/roxy", b"nope")
+        self.assertEqual(self.pics("characters/roxy"), ["roxy.png"])
+
+
 class TestSaveNodeKeepsMetadata(LibCase):
     def test_tags_and_description_survive_a_graph_save(self):
         d = self.raw("characters/roxy")

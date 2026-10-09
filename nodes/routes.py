@@ -6,10 +6,14 @@ ComfyUI's origin-only middleware already protects from cross-site requests.
 
 from __future__ import annotations
 
+import asyncio
+import heapq
+import io
 import json
 import logging
 import mimetypes
 import os
+from collections import OrderedDict
 from pathlib import Path
 
 import folder_paths
@@ -34,6 +38,8 @@ routes = PromptServer.instance.routes
 LORA_PREVIEW_EXTS = (".webp", ".preview.webp", ".preview.png", ".preview.jpeg", ".preview.jpg",
                      ".preview.mp4", ".png", ".jpeg", ".jpg", ".mp4", ".gif", ".webm", ".avif")
 VIDEO_EXTS = (".mp4", ".webm")
+OUTPUT_TYPES = ("output", "temp")  # where "recent generations" come from
+CARD_THUMB = 480  # px, long side; cards are ~220 px wide, so this stays sharp at 2x
 
 
 def _json(data, status: int = 200) -> web.Response:
@@ -114,8 +120,8 @@ def _picture(name: str, entry: dict | None = None, depth: int = 0) -> dict | Non
     """Where a preset's card picture comes from (PLAN-tansu.md §3): its own
     picture, else a LoRA preview, else the picture of the preset it extends."""
     own = L.picture_of(LIB, name)
-    if own:
-        return {"kind": "own", "path": own, "nsfw": 0}
+    if own:  # "parent": the picture belongs to the preset this one extends
+        return {"kind": "own" if depth == 0 else "parent", "path": own, "nsfw": 0}
     loras = (entry or {}).get("loras")
     if loras is None:
         try:
@@ -163,7 +169,7 @@ async def library(request: web.Request) -> web.Response:
         pic = _picture(e["name"], e if not e["error"] else None)
         e["picture"] = None if pic is None else {
             "kind": pic["kind"], "nsfw": pic["nsfw"], "video": pic["path"].suffix.lower() in VIDEO_EXTS,
-            "version": int(pic["path"].stat().st_mtime)}
+            "version": str(pic["path"].stat().st_mtime_ns)}  # a string: too big for a JS number
     return _json({"presets": entries, "used_by": L.reverse_refs(entries), "tags": L.tag_counts(entries),
                   "trash": len(L.list_trash(LIB))})
 
@@ -174,7 +180,123 @@ async def picture(request: web.Request) -> web.Response:
     pic = _picture(L.check_name(request.query.get("name", "")))
     if pic is None:
         raise web.HTTPNotFound()
+    if request.query.get("thumb") and pic["path"].suffix.lower() not in VIDEO_EXTS:
+        return await _thumb_response(pic["path"], CARD_THUMB)
     return web.FileResponse(pic["path"], headers={"Cache-Control": "max-age=60"})
+
+
+@routes.post("/kisekae/api/picture")
+@api
+async def set_picture(request: web.Request) -> web.Response:
+    """Upload: the request body is the image file itself."""
+    name = request.query.get("name", "")
+    if (request.content_length or 0) > L.MAX_PICTURE:
+        raise KisekaeError(f"pictures can be up to {L.MAX_PICTURE // 2**20} MB")
+    L.set_picture(LIB, name, await request.read())
+    return _json({"name": L.check_name(name)})
+
+
+@routes.post("/kisekae/api/picture/output")
+@api
+async def picture_from_output(request: web.Request) -> web.Response:
+    """Use one of ComfyUI's generated images (as listed by api/outputs)."""
+    body = await _body(request)
+    path = _output_file(_arg(body, "type"), _arg(body, "path"))
+    L.set_picture(LIB, _arg(body, "name"), path.read_bytes())
+    return _json({"name": L.check_name(body["name"])})
+
+
+@routes.post("/kisekae/api/picture/remove")
+@api
+async def remove_picture(request: web.Request) -> web.Response:
+    body = await _body(request)
+    return _json({"trash": L.remove_picture(LIB, _arg(body, "name"))})
+
+
+# -- recent generations ------------------------------------------------------------
+
+def _output_root(kind: str) -> Path:
+    if kind not in OUTPUT_TYPES:
+        raise KisekaeError(f"unknown output folder {kind!r}")
+    return Path(folder_paths.get_directory_by_type(kind)).resolve()
+
+
+def _output_file(kind: str, rel: str) -> Path:
+    root = _output_root(kind)
+    path = (root / rel).resolve()
+    if not path.is_relative_to(root) or not path.is_file() or path.suffix.lower() not in L.PICTURE_EXTS:
+        raise KisekaeError(f"{rel!r} is not an image in ComfyUI's {kind} folder")
+    return path
+
+
+def _recent_outputs(limit: int) -> list[dict]:
+    found = []  # (mtime_ns, type, path)
+    for kind in OUTPUT_TYPES:
+        root = _output_root(kind)
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+            for fn in filenames:
+                if fn.startswith(".") or os.path.splitext(fn)[1].lower() not in L.PICTURE_EXTS:
+                    continue
+                p = os.path.join(dirpath, fn)
+                try:
+                    found.append((os.stat(p).st_mtime_ns, kind, p))
+                except OSError:
+                    continue  # deleted while walking
+    return [{"type": kind, "path": Path(p).relative_to(_output_root(kind)).as_posix(), "mtime": m / 1e9}
+            for m, kind, p in heapq.nlargest(limit, found)]
+
+
+@routes.get("/kisekae/api/outputs")
+@api
+async def outputs(request: web.Request) -> web.Response:
+    try:
+        limit = max(1, min(200, int(request.query.get("limit", "60"))))
+    except ValueError:
+        raise KisekaeError("limit must be a number") from None
+    found = await asyncio.get_running_loop().run_in_executor(None, _recent_outputs, limit)
+    return _json({"outputs": found})
+
+
+@routes.get("/kisekae/api/outputs/thumb")
+@api
+async def output_thumb(request: web.Request) -> web.Response:
+    q = request.query
+    return await _thumb_response(_output_file(q.get("type", ""), q.get("path", "")), 320)
+
+
+_THUMBS: OrderedDict[tuple, bytes] = OrderedDict()  # (path, mtime_ns, size) -> webp
+
+
+def _make_thumb(path: Path, size: int) -> bytes:
+    from PIL import Image, ImageOps
+
+    with Image.open(path) as im:
+        im = ImageOps.exif_transpose(im)
+        im.thumbnail((size, size))
+        if im.mode not in ("RGB", "RGBA"):
+            im = im.convert("RGBA" if "A" in im.getbands() else "RGB")
+        out = io.BytesIO()
+        im.save(out, "WEBP", quality=82, method=4)
+    return out.getvalue()
+
+
+async def _thumb_response(path: Path, size: int) -> web.Response:
+    """A small WebP of ``path``, cached in memory (generated images are 2-3 MB PNGs)."""
+    key = (str(path), path.stat().st_mtime_ns, size)
+    data = _THUMBS.get(key)
+    if data is None:
+        try:
+            data = await asyncio.get_running_loop().run_in_executor(None, _make_thumb, path, size)
+        except Exception as e:  # unreadable or truncated image: the original, untouched
+            log.warning("kisekae: no thumbnail for %s: %s", path, e)
+            return web.FileResponse(path, headers={"Cache-Control": "max-age=60"})
+        _THUMBS[key] = data
+        while len(_THUMBS) > 400:
+            _THUMBS.popitem(last=False)
+    else:
+        _THUMBS.move_to_end(key)
+    return web.Response(body=data, content_type="image/webp", headers={"Cache-Control": "max-age=3600"})
 
 
 @routes.get("/kisekae/api/preset")

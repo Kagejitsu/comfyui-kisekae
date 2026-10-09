@@ -4,7 +4,7 @@
 web UI, in the spirit of LoRA Manager's tab, for browsing, editing and organizing
 Kisekae presets. The name is a working title and easy to change.
 
-Status: **steps 1a–1c done 2026-10-08**: library core (57 tests) + `/kisekae` organizer page (folder tree, search, sort, kind & tri-state tag chips, picture cards with LoRA-preview and extends fallback, NSFW blur, detail panel with prompt/refs, rename with dry run, duplicate, trash/restore) + 👘 Tansu action-bar button. Editor (1c): form per section with none/inherit · fields · $ref modes, inherited values as placeholders, vocab suggestions + "＋ dropdown", weights, LoRA rows with picker and trigger autofill, tags, extends, raw JSON tab, live preview with template picker, Ctrl+S save with conflict dialog, read-only examples with "Duplicate to edit", "As preset" section extraction, unsaved-changes guard, URL routing (#edit/…, #new/…). 1d (polish & release) done: shortcuts help (?), clearer blur toggle, stale-folder fallback, README "Tansu" section with placeholder screenshots (docs/screenshots/tansu-*.png for Kate), version 0.2.0 committed but NOT pushed (pushing publishes to the Registry; Kate decides). **Phase 2 done 2026-10-08**: Dropdowns page (per-field values with origin shipped/yours/changed, negatives, clears, field default, hide/unhide shipped, reset, replace list) and Templates page (editor, palette, live preview vs any preset, save/save as/my version of shipped/back to shipped, trash). Vocab fixes: overlay values inherit the field default hides; new "remove". 65 tests. Next: later items (picture capture, Send to ComfyUI).
+Status: **steps 1a–1c done 2026-10-08**: library core (57 tests) + `/kisekae` organizer page (folder tree, search, sort, kind & tri-state tag chips, picture cards with LoRA-preview and extends fallback, NSFW blur, detail panel with prompt/refs, rename with dry run, duplicate, trash/restore) + 👘 Tansu action-bar button. Editor (1c): form per section with none/inherit · fields · $ref modes, inherited values as placeholders, vocab suggestions + "＋ dropdown", weights, LoRA rows with picker and trigger autofill, tags, extends, raw JSON tab, live preview with template picker, Ctrl+S save with conflict dialog, read-only examples with "Duplicate to edit", "As preset" section extraction, unsaved-changes guard, URL routing (#edit/…, #new/…). 1d (polish & release) done: shortcuts help (?), clearer blur toggle, stale-folder fallback, README "Tansu" section with placeholder screenshots (docs/screenshots/tansu-*.png for Kate), version 0.2.0 committed but NOT pushed (pushing publishes to the Registry; Kate decides). **Phase 2 done 2026-10-08**: Dropdowns page (per-field values with origin shipped/yours/changed, negatives, clears, field default, hide/unhide shipped, reset, replace list) and Templates page (editor, palette, live preview vs any preset, save/save as/my version of shipped/back to shipped, trash). Vocab fixes: overlay values inherit the field default hides; new "remove". 65 tests. **Picture capture done 2026-10-09**: 🖼 Picture… dialog (recent generations from output/temp, upload, drop, paste, same-origin URL drops from the ComfyUI tab, remove), drop-on-card, card thumbnails (480 px WebP, cached); old pictures go to `.trash/`. 68 tests. Next: Send to ComfyUI if needed.
 
 ---
 
@@ -113,6 +113,10 @@ The existing `PresetLibrary.user_path`, `check_inside_user_root`, `write_preset`
 | `POST /kisekae/api/trash` | `{name}` | trash entry + still-referenced-by list |
 | `GET /kisekae/api/trash` · `POST /kisekae/api/restore` | | list / restore |
 | `GET /kisekae/api/picture?name=` | | the preset's picture or LoRA preview (path-checked) |
+| `POST /kisekae/api/picture?name=` | the image bytes | set the preset's picture (type from the file signature; PNG/JPEG/WebP, ≤ 32 MB; old one to `.trash/`) |
+| `POST /kisekae/api/picture/output` | `{name, type, path}` | same, from ComfyUI's `output`/`temp` folder (path-contained) |
+| `POST /kisekae/api/picture/remove` | `{name}` | own picture to `.trash/` |
+| `GET /kisekae/api/outputs?limit=` | | newest images in `output` and `temp`; `outputs/thumb?type=&path=` serves 320 px WebP thumbnails |
 | `GET /kisekae/api/loras?q=` | | LoRA files with trigger words (`civitai.trainedWords`) and preview, for the picker |
 | `GET /kisekae/api/schema` | | sections/fields, vocab values per field, template names |
 | `POST /kisekae/api/vocab` | `{section, field, value}` | updated values |
@@ -202,7 +206,7 @@ Two columns: the form on the left, the **live preview** on the right.
 | **1c. Editor** | form, LoRA picker, raw JSON tab, live preview, add-to-dropdown, conflict handling | Kate's Roxy rebuilt in the editor renders the same prompt as the nodes; a Save Preset run while editing triggers the conflict dialog |
 | **1d. Polish & release** | keyboard shortcuts, empty/error states, README "Tansu" section + screenshots, version 0.2.0 | Kate's hands-on trial; **publishing = bump the version and push, only on Kate's go-ahead** |
 | **2. Vocab & templates** | vocab page (values, negatives, hides, hide shipped values), template page (editor, placeholder palette, live preview against any preset) | — |
-| **Later** | picture capture ("use last generated image" from the queue history / output folder, or upload), render-a-preview, Send to ComfyUI | — |
+| **Later** | ~~picture capture~~ (done 2026-10-09), render-a-preview, Send to ComfyUI | — |
 
 A git commit at each step. Pushing and Registry releases only with Kate's go-ahead.
 

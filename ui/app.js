@@ -238,6 +238,7 @@ function showHelp() {
         h("tr", {}, h("td", {}, h("kbd", {}, k)), h("td", { class: "muted" }, where), h("td", {}, what)))),
       h("p", { class: "muted" }, "Tag chips cycle: click to require the tag, again to exclude it, again to clear."),
       h("p", { class: "muted" }, "🔞 cycles R-18 cards between blurred, hidden and shown. Mark a preset R-18 in its details or in the editor."),
+      h("p", { class: "muted" }, "Drop an image on a card, or use 🖼 Picture… in its details, to give a preset a picture."),
       h("p", { class: "muted" }, "Presets live in ComfyUI/user/default/kisekae/presets/. Press R in ComfyUI after changes here to refresh the node dropdowns.")),
     actions: [{ label: "Close" }],
   });

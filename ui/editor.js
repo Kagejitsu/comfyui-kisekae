@@ -4,6 +4,7 @@
 
 import { api } from "./api.js";
 import { append, clear, dialog, h, toast } from "./dom.js";
+import { pictureDialog } from "./picture.js";
 
 const SECTION_ICON = {
   identity: "👤", head: "🙂", hair: "💇", body: "🧍", outfit: "👘", style: "🎨", pose: "🤸", scene: "🎬",
@@ -73,9 +74,18 @@ function render(ed) {
     ["form", "json"].map((t) => h("button", {
       class: `tab ${ed.tab === t ? "on" : ""}`, onclick: () => switchTab(ed, t),
     }, t === "form" ? "Form" : "Raw JSON")));
+  // The picture is saved on its own, right away: it isn't part of the draft.
+  ed.picBtn = ed.readonly ? null : h("button", {
+    class: "btn", hidden: ed.isNew, title: "Upload, drop or paste a picture, or pick a recent generation",
+    onclick: () => {
+      // right after a first save the library may still be reloading
+      const entry = ed.state.presets.find((x) => x.name === ed.name) || { name: ed.name, title: ed.draft.name || ed.name, picture: null };
+      pictureDialog(entry, { onDone: () => ed.app.reload() });
+    },
+  }, "🖼 Picture…");
   const bar = h("div", { class: "editor-bar" },
     h("button", { class: "btn ghost", onclick: () => ed.app.closeEditor() }, "← Organizer"),
-    ed.titleEl, ed.dirtyEl, h("div", { class: "spacer" }), tabs, ed.saveBtn);
+    ed.titleEl, ed.dirtyEl, h("div", { class: "spacer" }), ed.picBtn, tabs, ed.saveBtn);
   ed.formEl = h("div", { class: "editor-form" });
   ed.previewEl = h("aside", { class: "editor-preview" });
   append(root, [
@@ -497,6 +507,7 @@ async function save(ed, { force = false } = {}) {
     const r = await api.save(name, ed.draft, ed.isNew && !force ? null : etag);
     Object.assign(ed, { etag: r.etag, dirty: false, isNew: false, name });
     ed.dirtyEl.hidden = true;
+    if (ed.picBtn) ed.picBtn.hidden = false;
     toast(`Saved ${name}`, "ok");
     ed.app.editorSaved(name);
   } catch (e) {

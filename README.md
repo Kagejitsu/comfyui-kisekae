@@ -252,6 +252,8 @@ library in its own tab, at `http://<your ComfyUI>/kisekae`.
   dropdowns ignore). **Restore** puts it back.
 - Shipped examples are read-only: **Duplicate** copies one into your folder.
 
+![Tansu detail panel](docs/screenshots/tansu-organizer-details.png)
+
 ![Tansu editor](docs/screenshots/tansu-editor.png)
 
 **Editor**

@@ -359,6 +359,7 @@ textarea.template { min-height: 14rem; font-size: 0.92rem; line-height: 1.6; res
 table.vocab .hides .small-select { width: auto; }
 .btn kbd { background: transparent; color: inherit; border-color: rgba(255, 255, 255, 0.45); margin-left: 0.3rem; font-size: 0.7rem; }
 .editor-preview h3 { white-space: nowrap; }
+.editor-preview .row select { min-width: 0; max-width: 100%; } /* long preset names shrink instead of overflowing */
 
 /* -- picture dialog ---------------------------------------------------------------------- */
 .btn[hidden] { display: none; }
